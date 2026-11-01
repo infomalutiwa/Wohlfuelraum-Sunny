@@ -25,7 +25,7 @@ box-shadow:0 40px 70px -40px rgba(59,42,32,.55),0 2px 0 rgba(255,255,255,.8) ins
 label{display:block;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:14px 0 6px}
 input{width:100%;padding:13px 15px;border:1.5px solid var(--line);border-radius:14px;background:#fff;outline:0;transition:.2s}
 input:focus{border-color:var(--gold);box-shadow:0 0 0 4px rgba(185,138,78,.15)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border:0;border-radius:999px;background:var(--ink);color:#fff;cursor:pointer;transition:.2s;font-weight:500}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border:0;border-radius:4px;background:var(--ink);color:#fff;cursor:pointer;transition:.2s;font-weight:500}
 .btn:hover{background:var(--gold);transform:translateY(-2px)}
 .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
 .btn.ghost:hover{background:#fff;border-color:var(--gold);color:var(--ink)}
@@ -45,7 +45,7 @@ aside .logo{width:42px;height:42px;font-size:1.3rem;transform:none}
 .nav{display:flex;justify-content:space-between;align-items:center;width:100%;padding:12px 14px;border:0;border-radius:14px;background:transparent;cursor:pointer;text-align:left;transition:.2s}
 .nav:hover{background:rgba(255,255,255,.8);transform:translateX(3px)}
 .nav.on{background:#fff;box-shadow:0 10px 22px -14px rgba(59,42,32,.6);color:var(--gold);font-weight:500}
-.nav i{font-style:normal;font-size:.78rem;background:var(--gold);color:#fff;border-radius:999px;padding:1px 9px;min-width:22px;text-align:center}
+.nav i{font-style:normal;font-size:.78rem;background:var(--gold);color:#fff;border-radius:4px;padding:1px 9px;min-width:22px;text-align:center}
 .nav i:empty,.nav i[data-n="0"]{display:none}
 aside .sp{flex:1}
 aside .who{font-size:.8rem;color:var(--mut);word-break:break-all;padding:0 6px 8px}
@@ -128,7 +128,7 @@ aside.glass{flex-direction:row;overflow-x:auto;padding:10px;align-items:center}a
   <section id="view" class="glass closed"><div class="ph">Wähle links einen Termin.</div></section>
 </main>
 
-<script src="/assets/booking-config.js?v=6"></script>
+<script src="/assets/booking-config.js?v=7"></script>
 <script type="module">
 const V='https://www.gstatic.com/firebasejs/10.12.2/';
 const {initializeApp}=await import(V+'firebase-app.js');

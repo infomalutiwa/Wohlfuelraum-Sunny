@@ -67,7 +67,7 @@ header.site.stuck{box-shadow:0 10px 24px -22px rgba(46,42,39,.45)}
 .cta-band p{color:var(--mut);max-width:52ch;margin:0 auto 28px}
 .cta-band .cta{justify-content:center;margin:0}
 .rel{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
-.rel a{padding:11px 20px;border:1.5px solid var(--line);border-radius:999px;transition:.2s}
+.rel a{padding:11px 20px;border:1.5px solid var(--line);border-radius:4px;transition:.2s}
 .rel a:hover{border-color:var(--gold);background:#fff}
 .pagebody{padding-top:0}
 
