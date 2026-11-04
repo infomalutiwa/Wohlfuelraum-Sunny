@@ -1,16 +1,16 @@
-# Wohlfühlort Sunny: Stand der Website
+# Wohlfühlraum Sunny: Stand der Website
 
 Zum Weitermachen in einem neuen Chat: diese Datei zuerst lesen.
 Repo: `infomalutiwa/Sunny-Mails-Beauty`, Branch `ccr-2ec575da-frrsfm` (Stand 31.10.2026). Kein Pull Request angelegt.
 Vorschau (Firebase Hosting, Projekt `sunny-mails-beauty`): https://sunny-mails-beauty.web.app/
 
 ## Das Studio (aus den Instagram-Screenshots der Inhaberin)
-- Wohlfühlort Sunny, "Dein Ort zum Aufblühen", Kosmetik · Nails · Fußpflege. Neueröffnung 01.11.2025.
+- Wohlfühlraum Sunny, "Dein Ort zum Aufblühen", Kosmetik · Nails · Fußpflege. Neueröffnung 01.11.2025.
 - Müßmattstraße 22, 79618 Rheinfelden (Baden). Telefon/WhatsApp 0173 3098632. Instagram @wohlfuehlraum_sunny.
 - Zeiten: Mo 8–13, Di und Do 8–13 und 15–20, Mi geschlossen, Fr 10–16, Sa nach Vereinbarung, So geschlossen.
 - Preise (aus den Preislisten): Maniküre 35–60 €, Zusätze +5 €, Schmucknagel 3 €. Pediküre 43–48 €, Wohlfühlbehandlung 69 €.
   Augenbrauen 15–59 €, Wimpern 15 und 69 €, Kombi 35 und 119 €. Kosmetik: keine Preisliste vorhanden, "auf Anfrage".
-- Design (31.10.): Palette von Sunny: Elfenbein #FDFBF7, Sand #F3EFEA, Champagner-Gold #C8A97E–#B89355 (Buttons als Verlauf, dunkle Schrift), Text #2E2A27, Salbei #D8DFD5 als dezenter Akzent (Top-Leiste, Infoleiste, Preis-Bereich). Schriften wie im Logo: Raleway + Cormorant Garamond, Überschriften DM Serif. Vollbild-Hero-Video (Querformat) und Hochformat-Video fürs Handy, Marmor nur weich ausgeblendet. Name laut Logo: Wohlfühlort Sunny.
+- Design (31.10.): Palette von Sunny: Elfenbein #FDFBF7, Sand #F3EFEA, Champagner-Gold #C8A97E–#B89355 (Buttons als Verlauf, dunkle Schrift), Text #2E2A27, Salbei #D8DFD5 als dezenter Akzent (Top-Leiste, Infoleiste, Preis-Bereich). Schriften wie im Logo: Raleway + Cormorant Garamond, Überschriften DM Serif. Vollbild-Hero-Video (Querformat) und Hochformat-Video fürs Handy, Marmor nur weich ausgeblendet. Name laut Logo: Wohlfühlraum Sunny.
 - Marke: Braun, Gold, Creme, Serifenschrift. Logo in der Seite: Wortmarke als Text plus "W"-Monogramm (Platzhalter). Echte Logo-Datei (SVG/PNG) einsetzen, sobald vorhanden.
 
 ## Aufbau
