@@ -315,11 +315,12 @@ footer .brand{color:var(--ink)}
 .dark .pic,.spa .pic{border-radius:22px}
 
 /* Logo */
-.brand .sun{width:auto;height:34px;max-width:none}
+.brand .ws{width:auto;height:44px;max-width:none}.brand .wm{width:auto;height:34px;max-width:none}
 .brand{gap:12px}
 .brand .bn{font-size:1.35rem;letter-spacing:.01em}
 .flogo{display:block;margin:0 auto 18px;width:min(260px,70%);height:auto}
-@media(max-width:760px){.brand .sun{height:28px}.brand .bn{font-size:1.15rem}}
+.brand .bn{display:none}
+@media(max-width:760px){.brand .ws{height:36px}.brand .wm{height:27px}.brand .bn{font-size:1.15rem}}
 
 /* Handy */
 @media(max-width:760px){
