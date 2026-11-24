@@ -90,7 +90,7 @@ root.addEventListener('click',e=>{
 /* Kalendereintrag für die Kundin */
 function ics(b){
   const dt=(date,min)=>date.replace(/-/g,'')+'T'+pad(Math.floor(min/60))+pad(min%60)+'00';
-  const txt=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Wohlfuehlraum Sunny//DE','BEGIN:VEVENT','UID:'+b.id+'@sunny-mails-beauty.web.app',
+  const txt=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Wohlfuehlraum Sunny//DE','BEGIN:VEVENT','UID:'+b.id+'@wohlfuehlraum-sunny.de',
     'DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z','DTSTART;TZID=Europe/Berlin:'+dt(b.date,b.start),'DTEND;TZID=Europe/Berlin:'+dt(b.date,b.end),
     'SUMMARY:Wohlfühlraum Sunny: '+b.services.join(', '),'LOCATION:Müßmattstraße 22\\, 79618 Rheinfelden (Baden)','DESCRIPTION:Absage bitte telefonisch: 0173 3098632','END:VEVENT','END:VCALENDAR'].join('\r\n');
   return URL.createObjectURL(new Blob([txt],{type:'text/calendar'}));

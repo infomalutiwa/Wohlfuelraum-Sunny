@@ -1,0 +1,27 @@
+# Wohlfühlraum Sunny – Einstellungen für den Webserver (ALL-INKL / Apache)
+DirectoryIndex index.html
+Options -Indexes
+
+# Startseite -> /business/
+RedirectMatch 302 ^/$ /business/
+
+# Interne Dateien nicht ausliefern
+<FilesMatch "(\.md|firebase\.json|\.firebaserc|firestore\.rules|firestore\.indexes\.json)$">
+  Require all denied
+</FilesMatch>
+
+# HTML, CSS, JS immer frisch laden (wie bisher bei Firebase)
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|css|js)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "\.(jpg|png|webp|mp4|webm|woff2)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_mime.c>
+  AddType font/woff2 .woff2
+  AddType video/webm .webm
+  AddType video/mp4 .mp4
+</IfModule>

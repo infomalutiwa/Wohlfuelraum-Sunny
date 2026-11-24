@@ -18,7 +18,7 @@ Vorschau (Firebase Hosting, Projekt `sunny-mails-beauty`): https://sunny-mails-b
 - `business/`: 8 Seiten (Start, Kosmetik, Nägel, Fußpflege, Brauen & Wimpern, Preise, Galerie, Termin & Kontakt) plus Impressum, Datenschutz. Animationen, Vorher-Nachher, Terminbuchung, JSON-LD (BeautySalon, FAQ, Breadcrumb), Open Graph, `sitemap.xml`/`robots.txt` im Root.
 - Business-Seiten werden mit einem Skript erzeugt (liegt nicht im Repo). Änderungen daher direkt in den HTML-Dateien machen oder das Skript neu schreiben.
 - `assets/`: `style.css`, `business.css`, `business.js`, `booking.js`, `booking-config.js` (Leistungen, Preise, Zeiten; Dauer sind Schätzwerte). `img/`: Stimmungsbilder von Unsplash (kostenlos, auch gewerblich, ohne Namensnennung; Unsplash-Lizenz): spa-kerzen, spa-handtuecher, empfang, kosmetik, naegel, naegel-2, fussmassage, wimpern, creme, marmor. Vorher-Nachher (`haut-1..3`) sind echte Studiofotos. Die alten Studiofotos wurden auf Wunsch der Inhaberin entfernt. Später gern durch eigene, professionelle Fotos ersetzen.
-- Domain `sunny-mails-beauty.web.app` steht in canonical, og:url, sitemap, robots: bei Domainwechsel ersetzen.
+- Domain: `wohlfuehlraum-sunny.de` (Hosting ALL-INKL, Account w022499d, Ordner `/wohlfuehlraum-sunny.de/`) steht in canonical, og:url, sitemap, robots. Upload per FTP: Inhalt von Repo-Root ohne .git, *.md, firebase-Dateien; `.htaccess` leitet / auf /business/ und regelt Caching. Firebase bleibt für die Buchung (Firestore) zuständig.
 
 ## Terminbuchung (Direktbuchung)
 - `termin.html` + `assets/booking.js`: mehrere Leistungen wählbar, nur freie Zeiten in den Öffnungszeiten (`booking-config.js`), sofort gebucht, Kalenderdatei für die Kundin.
@@ -33,6 +33,6 @@ Vorschau (Firebase Hosting, Projekt `sunny-mails-beauty`): https://sunny-mails-b
 1. Fotorechte klären: Gesichtsfotos (Vorher-Nachher) brauchen Einwilligung der Kundinnen. Nägel- und Fußfotos wirken wie Fremdbilder, eigene einsetzen.
 2. Eigenes Foto für Augenbrauen & Wimpern und Head Spa (aktuell Platzhalter). Schulungspreise waren im PDF als Vorschlag markiert: vor Veröffentlichung bestätigen.
 3. Dauer laut Preislisten in `booking-config.js` (bei Spannen die längere Zeit), Leistungen in der Buchung nach Bereich gruppiert. Anzahlung/Storno-Regeln gibt es für dieses Studio nicht, `deposit:null`.
-4. Buchungssystem wählen (Live-Kalender), Domain registrieren, Hoster in Datenschutz eintragen.
+4. Bei ALL-INKL: SSL-Zertifikat (Let's Encrypt) einrichten und HTTPS erzwingen, AV-Vertrag abschließen. In Firebase prüfen, dass Buchung und /mail-Login unter der neuen Domain funktionieren.
 5. Rosa Stellen in Impressum und Datenschutz ausfüllen (Name Inhaberin, E-Mail, Rechtsform, Steuer-ID usw.), rechtlich prüfen.
 6. Rheinfelden-Postleitzahl 79618 gegenprüfen.
