@@ -35,6 +35,6 @@ Live: https://wohlfuehlraum-sunny.de/ (ALL-INKL). Branch `claude/new-session-xv9
 1. Fotorechte klären: Gesichtsfotos (Vorher-Nachher) brauchen Einwilligung der Kundinnen. Nägel- und Fußfotos wirken wie Fremdbilder, eigene einsetzen.
 2. Eigenes Foto für Augenbrauen & Wimpern und Head Spa (aktuell Platzhalter). Schulungspreise waren im PDF als Vorschlag markiert: vor Veröffentlichung bestätigen.
 3. Dauer laut Preislisten in `booking-config.js` (bei Spannen die längere Zeit), Leistungen in der Buchung nach Bereich gruppiert. Anzahlung/Storno-Regeln gibt es für dieses Studio nicht, `deposit:null`.
-4. Bei ALL-INKL: AV-Vertrag in der MembersArea abschließen. HTTPS läuft bereits.
-5. Impressum/Datenschutz ausgefüllt (Inhaberin Stana Todorovic, Einzelunternehmen, Termindaten max. 90 Tage). Offen: USt-IdNr. nur eintragen, falls eine vergeben wird (Steuernummer gehört nicht ins Impressum). AV-Vertrag bei ALL-INKL und Firebase abschließen. Einwilligung der Personen auf Vorher-Nachher-Fotos sicherstellen.
+4. AV-Vertrag mit ALL-INKL besteht seit 25.10.2026 (MembersArea → Stammdaten → Auftragsverarbeitung, PDF). HTTPS läuft.
+5. Impressum/Datenschutz ausgefüllt (Inhaberin Stana Todorovic, Einzelunternehmen, Termindaten max. 90 Tage). Offen: USt-IdNr. nur eintragen, falls eine vergeben wird (Steuernummer gehört nicht ins Impressum). Einwilligung der Personen auf Vorher-Nachher-Fotos sicherstellen.
 6. Rheinfelden-Postleitzahl 79618 gegenprüfen.
