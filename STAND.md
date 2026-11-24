@@ -20,6 +20,14 @@ Vorschau (Firebase Hosting, Projekt `sunny-mails-beauty`): https://sunny-mails-b
 - `assets/`: `style.css`, `business.css`, `business.js`, `booking.js`, `booking-config.js` (Leistungen, Preise, Zeiten; Dauer sind Schätzwerte). `img/`: Stimmungsbilder von Unsplash (kostenlos, auch gewerblich, ohne Namensnennung; Unsplash-Lizenz): spa-kerzen, spa-handtuecher, empfang, kosmetik, naegel, naegel-2, fussmassage, wimpern, creme, marmor. Vorher-Nachher (`haut-1..3`) sind echte Studiofotos. Die alten Studiofotos wurden auf Wunsch der Inhaberin entfernt. Später gern durch eigene, professionelle Fotos ersetzen.
 - Domain: `wohlfuehlraum-sunny.de` (Hosting ALL-INKL, Account w022499d, Ordner `/wohlfuehlraum-sunny.de/`) steht in canonical, og:url, sitemap, robots. Upload per FTP: Inhalt von Repo-Root ohne .git, *.md, firebase-Dateien; `.htaccess` leitet / auf /business/ und regelt Caching. Firebase bleibt für die Buchung (Firestore) zuständig.
 
+## E-Mail (seit 24.11.2026)
+- Postfach `info@wohlfuehlraum-sunny.de` bei ALL-INKL. Versand über `api/kontakt.php` (PHP `mail()`, kein Passwort im Code).
+- Kontaktformular auf `termin.html#kontakt` (Thema per `?thema=Schulung`), Mail ans Studio mit Reply-To der Kundin.
+- Nach jeder Online-Buchung: Info-Mail ans Studio, Bestätigung mit .ics an die Kundin (nur wenn E-Mail angegeben). Der Server prüft per Firestore, dass der Termin wirklich belegt ist, und schickt pro Buchung nur einmal.
+- Schutz: nur eigene Domain, Honeypot, Mindestzeit 3 s, max. 8 Anfragen pro IP und Stunde (`api/.store/`, gesperrt).
+- Deploy: GitHub Actions `deploy-allinkl.yml` bei jedem Push auf den Branch, Secrets `FTP_USERNAME`/`FTP_PASSWORD`.
+- Stornieren in `/mail` schickt der Kundin noch keine Mail.
+
 ## Terminbuchung (Direktbuchung)
 - `termin.html` + `assets/booking.js`: mehrere Leistungen wählbar, nur freie Zeiten in den Öffnungszeiten (`booking-config.js`), sofort gebucht, Kalenderdatei für die Kundin.
 - Firestore: `termine/` (Kundendaten, nur Studio lesbar), `slots/{datum}_{minute}` (15-Min.-Blöcke, öffentlich lesbar, ohne Namen). Ein Block kann nur einmal angelegt werden, Doppelbuchungen sind per Regel ausgeschlossen. 12 Regeltests im Emulator bestanden.

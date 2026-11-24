@@ -31,8 +31,8 @@ f.addEventListener('submit',async e=>{
     f.querySelector('.bk-done').focus();
   }catch(x){
     btn.disabled=false;btn.textContent='Nachricht senden';
-    fail(String(x.message)==='rate'?'Du hast gerade schon mehrere Nachrichten geschickt. Bitte versuche es später noch einmal oder ruf uns an: 0173 3098632.'
-      :'Die Nachricht konnte nicht gesendet werden. Bitte versuche es erneut oder ruf uns an: 0173 3098632.');
+    fail(String(x.message)==='rate'?'Du hast gerade schon mehrere Nachrichten geschickt. Bitte versuche es später noch einmal oder ruf uns an: 0173\u00a03098632.'
+      :'Die Nachricht konnte nicht gesendet werden. Bitte versuche es erneut oder ruf uns an: 0173\u00a03098632.');
   }
 });
 })();

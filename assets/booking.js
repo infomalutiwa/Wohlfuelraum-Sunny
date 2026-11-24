@@ -66,7 +66,7 @@ async function renderSlots(){
   box.innerHTML='<p class="none">Lade freie Zeiten …</p>';update();
   try{const s=await slotsFor(st.day,total());if(my!==req)return;
     box.innerHTML=s.length?s.map(t=>`<button type="button" class="slot" data-t="${t}" aria-pressed="false">${t}</button>`).join(''):'<p class="none">An diesem Tag ist für diese Dauer nichts mehr frei. Bitte wähle einen anderen Tag.</p>';
-  }catch(e){if(my!==req)return;box.innerHTML='<p class="none">Die freien Zeiten konnten nicht geladen werden. Bitte ruf uns kurz an: 0173 3098632.</p>'}
+  }catch(e){if(my!==req)return;box.innerHTML='<p class="none">Die freien Zeiten konnten nicht geladen werden. Bitte ruf uns kurz an: 0173\u00a03098632.</p>'}
   update();
 }
 function update(){
@@ -92,14 +92,14 @@ function ics(b){
   const dt=(date,min)=>date.replace(/-/g,'')+'T'+pad(Math.floor(min/60))+pad(min%60)+'00';
   const txt=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Wohlfuehlraum Sunny//DE','BEGIN:VEVENT','UID:'+b.id+'@wohlfuehlraum-sunny.de',
     'DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z','DTSTART;TZID=Europe/Berlin:'+dt(b.date,b.start),'DTEND;TZID=Europe/Berlin:'+dt(b.date,b.end),
-    'SUMMARY:Wohlfühlraum Sunny: '+b.services.join(', '),'LOCATION:Müßmattstraße 22\\, 79618 Rheinfelden (Baden)','DESCRIPTION:Absage bitte telefonisch: 0173 3098632','END:VEVENT','END:VCALENDAR'].join('\r\n');
+    'SUMMARY:Wohlfühlraum Sunny: '+b.services.join(', '),'LOCATION:Müßmattstraße 22\\, 79618 Rheinfelden (Baden)','DESCRIPTION:Absage bitte telefonisch: 0173\u00a03098632','END:VEVENT','END:VCALENDAR'].join('\r\n');
   return URL.createObjectURL(new Blob([txt],{type:'text/calendar'}));
 }
 function done(b){
   root.innerHTML=`<div class="bk-done" role="status" tabindex="-1"><span class="ok">✓</span><h3>Dein Termin ist gebucht</h3>
   <p><b>${esc(longDay(b.date))}, ${fmtT(b.start)}–${fmtT(b.end)} Uhr</b><br>${b.services.map(esc).join(', ')}</p>
   ${b.email&&C.mailApi?`<p>Eine Bestätigung mit allen Details schicken wir an <b>${esc(b.email)}</b>.</p>`:''}
-  <p>Wir freuen uns auf dich, ${esc(b.name)}! Musst du absagen oder verschieben, ruf bitte an: <a href="tel:+491733098632">0173 3098632</a>.</p>
+  <p>Wir freuen uns auf dich, ${esc(b.name)}! Musst du absagen oder verschieben, ruf bitte an: <a href="tel:+491733098632">0173\u00a03098632</a>.</p>
   <div class="cta"><a class="btn btn-dark" href="${ics(b)}" download="termin-wohlfuehlraum-sunny.ics">In meinen Kalender</a><a class="btn btn-line" href="index.html">Zur Startseite</a></div></div>`;
   root.querySelector('.bk-done').focus();
 }
@@ -130,7 +130,7 @@ root.addEventListener('submit',async e=>{
     done({id:ref.id,name,email,date:st.day,start,end,services:names});
   }catch(x){
     go.disabled=false;update();
-    err.textContent=x&&x.code==='permission-denied'?'Diese Uhrzeit wurde gerade von jemand anderem gebucht. Bitte wähle eine andere Zeit.':'Das hat nicht geklappt. Bitte versuche es erneut oder ruf uns an: 0173 3098632.';
+    err.textContent=x&&x.code==='permission-denied'?'Diese Uhrzeit wurde gerade von jemand anderem gebucht. Bitte wähle eine andere Zeit.':'Das hat nicht geklappt. Bitte versuche es erneut oder ruf uns an: 0173\u00a03098632.';
     renderSlots();
   }
 });
