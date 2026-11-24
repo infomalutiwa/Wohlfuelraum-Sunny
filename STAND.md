@@ -26,18 +26,17 @@ Vorschau (Firebase Hosting, Projekt `sunny-mails-beauty`): https://sunny-mails-b
 - Nach jeder Online-Buchung: Info-Mail ans Studio, Bestätigung mit .ics an die Kundin (nur wenn E-Mail angegeben). Der Server prüft per Firestore, dass der Termin wirklich belegt ist, und schickt pro Buchung nur einmal.
 - Schutz: nur eigene Domain, Honeypot, Mindestzeit 3 s, max. 8 Anfragen pro IP und Stunde (`api/.store/`, gesperrt).
 - Deploy: GitHub Actions `deploy-allinkl.yml` bei jedem Push auf den Branch, Secrets `FTP_USERNAME`/`FTP_PASSWORD`.
-- Stornieren in `/mail` schickt der Kundin noch keine Mail.
+- `/mail` (Studio-Postfach mit Firebase-Login) wurde am 24.11.2026 auf Wunsch entfernt. Die Inhaberin liest alles im Mail-Konto info@ (iPhone-Mail per IMAP). Stornieren und Zeiten blockieren geht damit online nicht mehr, siehe Offen.
 
 ## Terminbuchung (Direktbuchung)
 - `termin.html` + `assets/booking.js`: mehrere Leistungen wählbar, nur freie Zeiten in den Öffnungszeiten (`booking-config.js`), sofort gebucht, Kalenderdatei für die Kundin.
 - Firestore: `termine/` (Kundendaten, nur Studio lesbar), `slots/{datum}_{minute}` (15-Min.-Blöcke, öffentlich lesbar, ohne Namen). Ein Block kann nur einmal angelegt werden, Doppelbuchungen sind per Regel ausgeschlossen. 12 Regeltests im Emulator bestanden.
-- Studio: `/mail` zeigt „Termine“ live, Benachrichtigung im Browser (solange die Seite offen ist, auch als App auf dem Homescreen), stornieren, „Zeit blockieren“ (Urlaub, telefonische Termine).
 - Push bei geschlossener Seite: kostenlose App ntfy, Adresse in `booking-config.js` bei `notify` eintragen. Echte Push/E-Mail-Bestätigung bräuchte Cloud Functions (Blaze-Tarif).
 - Serverseitig in den Regeln erzwungen (nicht nur im Browser): Öffnungszeiten je Wochentag (müssen zu `hours` in `booking-config.js` passen, sonst beides ändern), mindestens ca. 2,5 Std. Vorlauf, höchstens 60 Tage voraus, keine Überlappung. 20 Regeltests im Emulator plus Browser-Durchlauf (parallele Doppelbuchung, Mehrfachleistung, Vorlaufzeit) bestanden.
-- `/mail` zeigt pro Tag Termine und freie Zeiten („Noch frei: …“, „Ausgebucht“).
 - **Firestore-Regeln müssen deployt werden** (`firebase deploy --only firestore`), sonst schlägt die Buchung fehl.
 
 ## Offen
+0. Ohne `/mail`: stornierte Termine bleiben online belegt, Urlaub/Pausen lassen sich nicht blockieren. Lösung bei Bedarf: Storno-Link in den Buchungs-Mails (Firestore-Regel mit Schlüssel) oder Firebase-Konsole.
 1. Fotorechte klären: Gesichtsfotos (Vorher-Nachher) brauchen Einwilligung der Kundinnen. Nägel- und Fußfotos wirken wie Fremdbilder, eigene einsetzen.
 2. Eigenes Foto für Augenbrauen & Wimpern und Head Spa (aktuell Platzhalter). Schulungspreise waren im PDF als Vorschlag markiert: vor Veröffentlichung bestätigen.
 3. Dauer laut Preislisten in `booking-config.js` (bei Spannen die längere Zeit), Leistungen in der Buchung nach Bereich gruppiert. Anzahlung/Storno-Regeln gibt es für dieses Studio nicht, `deposit:null`.

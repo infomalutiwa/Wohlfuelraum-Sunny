@@ -186,8 +186,8 @@ if ($type === 'booking') {
   $r = ['Datum' => $when, 'Uhrzeit' => $time, 'Leistungen' => implode("\n", $services), 'Dauer' => trim($durTxt), 'Preis' => $priceTxt,
         'Name' => $name, 'Telefon' => $phone, 'E-Mail' => $email, 'Notiz' => $note];
   send(STUDIO_MAIL, 'Neue Buchung: ' . $when . ', ' . $fmt($start) . ' Uhr – ' . $name,
-    "Neue Online-Buchung\n\n" . textRows($r) . "\nAlle Termine: " . SITE . "/mail/\n",
-    layout('Neue Online-Buchung', rows($r) . '<p style="margin:0 0 18px"><a href="' . SITE . '/mail/" style="display:inline-block;background:#2E2A27;color:#fff;text-decoration:none;padding:12px 22px;border-radius:4px;font-size:14px">Termine öffnen</a></p>'),
+    "Neue Online-Buchung\n\n" . textRows($r),
+    layout('Neue Online-Buchung', rows($r) . '<p style="font-size:14px;color:#7A6F66;margin:0 0 18px">Antworten gehen direkt an die Kundin, sofern sie eine E-Mail angegeben hat.</p>'),
     $email && filter_var($email, FILTER_VALIDATE_EMAIL) ? enc($name) . " <$email>" : null);
 
   // an die Kundin
