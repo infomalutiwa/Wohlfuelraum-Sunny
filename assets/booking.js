@@ -25,7 +25,10 @@ const roundUp=m=>Math.ceil(m/BLOCK)*BLOCK;
 
 /* Leistungen: mehrere gleichzeitig wählbar */
 const sv=$('#bk-svc');
-sv.innerHTML=C.services.map(s=>`<button type="button" class="chip" data-id="${s.id}" aria-pressed="false">${esc(s.name)}<small>ca. ${fmtDur(s.minutes)}${s.price!=null?' · '+s.price+' €':''}</small></button>`).join('');
+const chip=s=>`<button type="button" class="chip" data-id="${s.id}" aria-pressed="false">${esc(s.name)}<small>ca. ${fmtDur(s.minutes)}${s.price!=null?' · '+s.price+' €':''}</small></button>`;
+const cats=[...new Set(C.services.map(s=>s.cat||''))];
+sv.innerHTML=cats.length>1?cats.map((c,i)=>`<details class="svc-cat"${i?'':' open'}><summary>${esc(c)}<span class="svc-n" hidden></span></summary><div class="chips">${C.services.filter(s=>(s.cat||'')===c).map(chip).join('')}</div></details>`).join(''):C.services.map(chip).join('');
+const marks=()=>sv.querySelectorAll('.svc-cat').forEach(d=>{const n=d.querySelectorAll('.chip[aria-pressed=true]').length,b=d.querySelector('.svc-n');b.hidden=!n;b.textContent=n+' gewählt'});
 
 /* Tage */
 const dy=$('#bk-days'),today=new Date();today.setHours(0,0,0,0);
@@ -73,13 +76,13 @@ function update(){
   const m=total(),p=price();
   const when=st.day?longDay(st.day)+(st.slot?`, ${st.slot}–${fmtT(toMin(st.slot)+m)} Uhr`:''):'noch offen';
   const list=st.svcs.map(s=>`<div><span>${esc(s.name)}</span><span>${s.price!=null?s.price+' €':'nach Behandlung'}</span></div>`).join('');
-  sum.innerHTML=`${list}<div class="tot"><span>Dauer gesamt</span><span>ca. ${fmtDur(m)}</span></div><div><span>Termin</span><span>${when}</span></div><div><span>Preis gesamt</span><span>${p!=null?'<b>'+p+' €</b>':(st.svcs.length>1?'ab '+st.svcs.reduce((a,s)=>a+(s.price||0),0)+' €, ':'')+'Kosmetik nach Behandlung'}</span></div><p style="font-size:.86rem;color:var(--mut)">Bezahlt wird vor Ort. Bitte sag rechtzeitig ab, wenn du nicht kommen kannst.</p>`;
+  sum.innerHTML=`${list}<div class="tot"><span>Dauer gesamt</span><span>ca. ${fmtDur(m)}</span></div><div><span>Termin</span><span>${when}</span></div><div><span>Preis gesamt</span><span>${p!=null?'<b>'+p+' €</b>':'ab '+st.svcs.reduce((a,s)=>a+(s.price||0),0)+' €, Design nach Aufwand'}</span></div><p style="font-size:.86rem;color:var(--mut)">Bezahlt wird vor Ort. Bitte sag rechtzeitig ab, wenn du nicht kommen kannst.</p>`;
   $('#bk-go').textContent=DIRECT||C.api?'Termin verbindlich buchen':'Termin per WhatsApp anfragen';
 }
 root.addEventListener('click',e=>{
   const c=e.target.closest('.chip'),d=e.target.closest('.day'),t=e.target.closest('.slot');
   if(c){const s=C.services.find(x=>x.id===c.dataset.id),on=st.svcs.includes(s);
-    st.svcs=on?st.svcs.filter(x=>x!==s):[...st.svcs,s];c.setAttribute('aria-pressed',!on);renderSlots()}
+    st.svcs=on?st.svcs.filter(x=>x!==s):[...st.svcs,s];c.setAttribute('aria-pressed',!on);marks();renderSlots()}
   if(d){st.day=d.dataset.d;dy.querySelectorAll('.day').forEach(x=>x.setAttribute('aria-pressed',x===d));renderSlots()}
   if(t){st.slot=t.dataset.t;$('#bk-slots').querySelectorAll('.slot').forEach(x=>x.setAttribute('aria-pressed',x===t));update()}
 });

@@ -167,3 +167,20 @@ footer .fl{flex-wrap:wrap;gap:8px 22px;padding:0 20px}
 .phero .vis{box-shadow:0 0 0 10px rgba(255,255,255,.6),0 0 0 11px rgba(169,136,79,.55)}
 
 .ptable li>div{min-width:0}.ptable li{gap:14px}
+
+/* Preisliste: Dauer unter dem Preis, Sprungmarken, Bereiche */
+.ptable em small{display:block;font:400 .78rem var(--sans);color:var(--mut);text-align:right;margin-top:4px;white-space:nowrap}
+.pjump{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.pjump a{padding:9px 16px;border:1px solid var(--line);border-radius:4px;background:#fff;font-size:.92rem;transition:border-color .2s}
+.pjump a:hover{border-color:var(--gold)}
+.psec{scroll-margin-top:100px;padding-top:48px}
+.psec>h2{margin-bottom:0}
+/* Buchung: Leistungen nach Bereich */
+.svc-list{display:grid;gap:10px}
+.svc-cat{border:1px solid var(--line);border-radius:4px;background:#fff}
+.svc-cat summary{cursor:pointer;padding:14px 18px;font-weight:500;display:flex;justify-content:space-between;align-items:center;gap:12px;list-style:none}
+.svc-cat summary::-webkit-details-marker{display:none}
+.svc-cat summary::after{content:'+';font-size:1.3rem;color:var(--mut)}
+.svc-cat[open] summary::after{content:'–'}
+.svc-n{margin-left:auto;font-size:.8rem;font-weight:400;color:var(--gold)}
+.svc-cat .chips{padding:0 18px 18px}

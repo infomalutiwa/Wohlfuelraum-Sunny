@@ -8,8 +8,8 @@ Vorschau (Firebase Hosting, Projekt `sunny-mails-beauty`): https://sunny-mails-b
 - Wohlfühlraum Sunny, "Dein Ort zum Aufblühen", Kosmetik · Nails · Fußpflege. Neueröffnung 01.11.2025.
 - Müßmattstraße 22, 79618 Rheinfelden (Baden). Telefon/WhatsApp 0173 3098632. Instagram @wohlfuehlraum_sunny.
 - Zeiten: Mo 8–13, Di und Do 8–13 und 15–20, Mi geschlossen, Fr 10–16, Sa nach Vereinbarung, So geschlossen.
-- Preise (aus den Preislisten): Maniküre 35–60 €, Zusätze +5 €, Schmucknagel 3 €. Pediküre 43–48 €, Wohlfühlbehandlung 69 €.
-  Augenbrauen 15–59 €, Wimpern 15 und 69 €, Kombi 35 und 119 €. Kosmetik: keine Preisliste vorhanden, "auf Anfrage".
+- Preise (Preislisten vom Studio, Stand 24.11.2026): Kosmetik inkl. Säurepeelings und Microneedling 49–139 €, Head Spa 49–119 €, Maniküre/Gel 32–60 €, Pediküre 45–60 €, Wimpern & Brauen 15–129 € (inkl. Wimpernverlängerung), Schulungen 199–649 € (nur auf der Preisseite, Anfrage per WhatsApp, nicht online buchbar).
+  Head Spa steht auf der Kosmetik-Seite und der Preisseite (keine eigene Seite). Die Wohlfühlbehandlung (Fuß) ist nicht mehr in der Liste und wurde entfernt.
 - Design (31.10.): Palette von Sunny: Elfenbein #FDFBF7, Sand #F3EFEA, Champagner-Gold #C8A97E–#B89355 (Buttons als Verlauf, dunkle Schrift), Text #2E2A27, Salbei #D8DFD5 als dezenter Akzent (Top-Leiste, Infoleiste, Preis-Bereich). Schriften wie im Logo: Raleway + Cormorant Garamond, Überschriften DM Serif. Vollbild-Hero-Video (Querformat) und Hochformat-Video fürs Handy, Marmor nur weich ausgeblendet. Name laut Logo: Wohlfühlraum Sunny.
 - Marke: Braun, Gold, Creme, Serifenschrift. Logo in der Seite: Wortmarke als Text plus "W"-Monogramm (Platzhalter). Echte Logo-Datei (SVG/PNG) einsetzen, sobald vorhanden.
 
@@ -31,8 +31,8 @@ Vorschau (Firebase Hosting, Projekt `sunny-mails-beauty`): https://sunny-mails-b
 
 ## Offen
 1. Fotorechte klären: Gesichtsfotos (Vorher-Nachher) brauchen Einwilligung der Kundinnen. Nägel- und Fußfotos wirken wie Fremdbilder, eigene einsetzen.
-2. Echtes Logo, eigenes Foto für Augenbrauen & Wimpern (aktuell Platzhalter), Kosmetik-Leistungen und Preise ergänzen.
-3. Dauer der Leistungen in `booking-config.js` bestätigen. Anzahlung/Storno-Regeln gibt es für dieses Studio nicht, `deposit:null`.
+2. Eigenes Foto für Augenbrauen & Wimpern und Head Spa (aktuell Platzhalter). Schulungspreise waren im PDF als Vorschlag markiert: vor Veröffentlichung bestätigen.
+3. Dauer laut Preislisten in `booking-config.js` (bei Spannen die längere Zeit), Leistungen in der Buchung nach Bereich gruppiert. Anzahlung/Storno-Regeln gibt es für dieses Studio nicht, `deposit:null`.
 4. Buchungssystem wählen (Live-Kalender), Domain registrieren, Hoster in Datenschutz eintragen.
 5. Rosa Stellen in Impressum und Datenschutz ausfüllen (Name Inhaberin, E-Mail, Rechtsform, Steuer-ID usw.), rechtlich prüfen.
 6. Rheinfelden-Postleitzahl 79618 gegenprüfen.
