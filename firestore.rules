@@ -4,7 +4,7 @@ service cloud.firestore {
     function studio() {
       return request.auth != null
         && request.auth.token.email_verified == true
-        && request.auth.token.email in ['info.malutiwa@gmail.com'];
+        && request.auth.token.email in ['info.malutiwa@gmail.com', 'info@wohlfuehlraum-sunny.de'];
     }
 
     // Alte Terminanfragen (WhatsApp-Weg), bleiben fürs Postfach erhalten
