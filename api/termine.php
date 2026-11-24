@@ -62,7 +62,7 @@ if ($a === 'book') {
   $fits = false;
   foreach ($hours ?: [] as [$from, $to]) if ($start >= $from * 60 && $end <= $to * 60 && ($start - $from * 60) % BOOKING['slotStep'] === 0) $fits = true;
   $startTs = strtotime($date . ' 00:00') + $start * 60;
-  if (!$fits) out(422, ['ok' => false, 'error' => 'hours']);
+  if (!$fits || in_array($date, closedDays(), true)) out(422, ['ok' => false, 'error' => 'hours']);
   if ($startTs < time() + BOOKING['minLead'] * 60) out(422, ['ok' => false, 'error' => 'lead']);
   if ($startTs > strtotime('today') + (BOOKING['daysAhead'] + 1) * 86400) out(422, ['ok' => false, 'error' => 'ahead']);
 

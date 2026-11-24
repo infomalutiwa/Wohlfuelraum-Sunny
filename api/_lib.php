@@ -92,6 +92,16 @@ const SERVICES =
   ['id'=>'ext-ab','cat'=>'Wimpern & Augenbrauen','name'=>"Wimpernverlängerung entfernen",'minutes'=>30,'price'=>25]
 ];
 
+/* Gesetzliche Feiertage Baden-Württemberg: online nicht buchbar */
+function holidays(int $y): array {
+  $a = $y % 19; $b = intdiv($y, 100); $c = $y % 100; $d = intdiv($b, 4); $e = $b % 4; $f = intdiv($b + 8, 25); $g = intdiv($b - $f + 1, 3);
+  $hh = (19 * $a + $b - $d - $g + 15) % 30; $i = intdiv($c, 4); $k = $c % 4; $l = (32 + 2 * $e + 2 * $i - $hh - $k) % 7; $m = intdiv($a + 11 * $hh + 22 * $l, 451);
+  $easter = mktime(12, 0, 0, intdiv($hh + $l - 7 * $m + 114, 31), (($hh + $l - 7 * $m + 114) % 31) + 1, $y);
+  $rel = fn(int $days) => date('Y-m-d', $easter + $days * 86400);
+  return ["$y-01-01", "$y-01-06", $rel(-2), $rel(1), "$y-05-01", $rel(39), $rel(50), $rel(60), "$y-10-03", "$y-11-01", "$y-12-25", "$y-12-26"];
+}
+function closedDays(): array { $y = (int)date('Y'); return array_values(array_merge(holidays($y), holidays($y + 1))); }
+
 /* ---------- Antworten, Schutz ---------- */
 function out(int $code, array $data): void {
   http_response_code($code);

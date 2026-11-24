@@ -24,7 +24,7 @@ Live: https://wohlfuehlraum-sunny.de/ (ALL-INKL). Branch `claude/new-session-xv9
 - Server-Skripte in `api/`: `_lib.php` (Öffnungszeiten, Leistungen, Mail-Vorlagen, Datenbank), `termine.php` (Buchung, Storno, Studio-Kalender), `kontakt.php` (Kontaktformular), `booking-config.php` (liefert Zeiten und Leistungen an die Buchungsseite).
 - **Leistungen und Öffnungszeiten nur noch in `api/_lib.php` ändern** (einzige Quelle).
 - Datenbank: SQLite `api/.store/termine.sqlite` auf dem Webspace (gesperrt per .htaccess, nicht im Repo). Dort auch `secret.key` für signierte Links. Termine werden 90 Tage nach dem Termin automatisch gelöscht.
-- Doppelbuchungen ausgeschlossen (eindeutige 15-Min.-Blöcke, Transaktion). Server prüft Öffnungszeiten, Raster, Vorlauf (120 Min.), max. 42 Tage voraus, Leistungen und Preise.
+- Doppelbuchungen ausgeschlossen (eindeutige 15-Min.-Blöcke, Transaktion). Server prüft Öffnungszeiten, Feiertage BW, Raster, Vorlauf (120 Min.), max. 42 Tage voraus, Leistungen und Preise.
 - Mails über PHP `mail()` von info@wohlfuehlraum-sunny.de: Studio bekommt jede Buchung mit Buttons „Kalender öffnen“ und „Termin stornieren“; Kundin bekommt Bestätigung mit .ics und „Termin absagen“-Link. Absagen lösen Mails an beide Seiten aus.
 - Studio-Kalender ohne Login: geheimer Link `api/termine.php?a=studio&k=…` (steht in jeder Buchungs-Mail). Zeigt kommende Termine, stornieren, Zeiten blockieren (Urlaub, Pausen, telefonische Termine). Neuer Link = `api/.store/secret.key` auf dem Server löschen (macht auch alte Storno-Links ungültig).
 - Kontaktformular auf `termin.html#kontakt` → Mail ans Studio.

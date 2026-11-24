@@ -28,7 +28,8 @@ const marks=()=>sv.querySelectorAll('.svc-cat').forEach(d=>{const n=d.querySelec
 /* Tage */
 const dy=$('#bk-days'),today=new Date();today.setHours(0,0,0,0);
 const days=[...Array(C.daysAhead||28)].map((_,i)=>{const d=new Date(today);d.setDate(d.getDate()+i);return d});
-dy.innerHTML=days.map(d=>{const open=!!C.hours[d.getDay()];return `<button type="button" class="day" data-d="${iso(d)}" aria-pressed="false" ${open?'':'disabled'} aria-label="${d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}${open?'':', geschlossen'}"><span>${d.toLocaleDateString('de-DE',{weekday:'short'})}</span><b>${d.getDate()}</b><span>${d.toLocaleDateString('de-DE',{month:'short'})}</span></button>`}).join('');
+const closed=new Set(C.closed||[]);
+dy.innerHTML=days.map(d=>{const open=!!C.hours[d.getDay()]&&!closed.has(iso(d));return `<button type="button" class="day" data-d="${iso(d)}" aria-pressed="false" ${open?'':'disabled'} aria-label="${d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}${open?'':', geschlossen'}"><span>${d.toLocaleDateString('de-DE',{weekday:'short'})}</span><b>${d.getDate()}</b><span>${d.toLocaleDateString('de-DE',{month:'short'})}</span></button>`}).join('');
 
 /* Belegte Blöcke eines Tages laden */
 async function busyFor(dateStr){
