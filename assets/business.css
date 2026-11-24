@@ -197,3 +197,13 @@ footer .fl{flex-wrap:wrap;gap:8px 22px;padding:0 20px}
 .cf .btn{justify-self:start}
 @media(max-width:520px){.cf .btn{justify-self:stretch}}
 #kontakt{scroll-margin-top:90px}
+
+/* Kontaktformular-Hinweis, Honeypot auch im Buchungsformular */
+.cf-hint{font-size:.85rem;color:var(--mut);margin:-6px 0 0}
+.bk .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+/* Nach erfolgreicher Buchung: kein zweites Formular, Anleitung ausblenden */
+.after-book{display:none}
+body.booked .book-page .lead,body.booked .book-page .ticks,body.booked #kontakt{display:none}
+body.booked .after-book{display:block;padding:0 0 40px;text-align:center;color:var(--mut)}
+body.booked .after-book a{text-decoration:underline;color:var(--ink)}
+body.booked .book-page{min-height:auto}

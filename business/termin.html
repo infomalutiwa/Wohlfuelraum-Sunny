@@ -19,8 +19,8 @@
 <link rel="icon" type="image/png" href="../img/favicon.png">
 <link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
 <link rel="preload" href="../assets/fonts/dmserif.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="../assets/style.css?v=16">
-<link rel="stylesheet" href="../assets/business.css?v=16">
+<link rel="stylesheet" href="../assets/style.css?v=17">
+<link rel="stylesheet" href="../assets/business.css?v=17">
 <noscript><style>.rv-in{opacity:1;translate:none}</style></noscript>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BeautySalon", "logo": "https://wohlfuehlraum-sunny.de/img/logo.png", "name": "Wohlfühlraum Sunny", "slogan": "Dein Ort zum Aufblühen", "url": "https://wohlfuehlraum-sunny.de/business/", "telephone": "+491733098632", "image": "https://wohlfuehlraum-sunny.de/img/spa-kerzen.jpg", "address": {"@type": "PostalAddress", "streetAddress": "Müßmattstraße 22", "postalCode": "79618", "addressLocality": "Rheinfelden (Baden)", "addressCountry": "DE"}, "openingHoursSpecification": [{"@type": "OpeningHoursSpecification", "dayOfWeek": "Monday", "opens": "08:00", "closes": "13:00"}, {"@type": "OpeningHoursSpecification", "dayOfWeek": ["Tuesday", "Thursday"], "opens": "08:00", "closes": "13:00"}, {"@type": "OpeningHoursSpecification", "dayOfWeek": ["Tuesday", "Thursday"], "opens": "15:00", "closes": "20:00"}, {"@type": "OpeningHoursSpecification", "dayOfWeek": "Friday", "opens": "10:00", "closes": "16:00"}], "sameAs": ["https://www.instagram.com/wohlfuehlraum_sunny"]}</script>
 </head>
@@ -62,6 +62,7 @@
         </div>
       </div>
       <div class="bk-sum" id="bk-sum" aria-live="polite" hidden></div>
+      <label class="hp" aria-hidden="true">Bitte leer lassen<input type="text" name="hp_web" tabindex="-1" autocomplete="new-password"></label>
       <label class="chk"><input type="checkbox" id="bk-ok"><span>Ich habe die <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a> gelesen.</span></label>
       <p class="bk-err" id="bk-err" role="alert"></p>
       <button class="btn btn-dark" type="submit" id="bk-go">Termin verbindlich buchen</button>
@@ -69,6 +70,8 @@
     </form>
   </div>
 </section>
+
+<section class="after-book" aria-hidden="true"><div class="wrap"><p>Noch eine Frage? Ruf uns an unter <a href="tel:+491733098632">0173&nbsp;3098632</a> oder schreib per <a href="https://wa.me/491733098632" target="_blank" rel="noopener noreferrer">WhatsApp</a>.</p></div></section>
 
 <section class="pagebody" id="kontakt">
   <div class="wrap two">
@@ -84,10 +87,11 @@
       </div>
       <div class="bk-two">
         <label>E-Mail<input type="email" name="email" autocomplete="email" placeholder="Für unsere Antwort"></label>
-        <label>Telefon (optional)<input type="tel" name="phone" autocomplete="tel"></label>
+        <label>Telefon<input type="tel" name="phone" autocomplete="tel" placeholder="Falls keine E-Mail"></label>
       </div>
+      <p class="cf-hint">E-Mail oder Telefon, eins reicht.</p>
       <label>Nachricht<textarea name="message" rows="5" placeholder="Wie können wir dir helfen?" required></textarea></label>
-      <label class="hp" aria-hidden="true">Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+      <label class="hp" aria-hidden="true">Bitte leer lassen<input type="text" name="hp_web" tabindex="-1" autocomplete="new-password"></label>
       <label class="chk"><input type="checkbox" name="ok"><span>Ich habe die <a href="datenschutz.html#kontaktformular" target="_blank">Datenschutzerklärung</a> gelesen.</span></label>
       <p class="bk-err" role="alert"></p>
       <button class="btn btn-dark" type="submit">Nachricht senden</button>
@@ -129,8 +133,8 @@
 <div class="dock"><a href="tel:+491733098632">Anrufen</a><a href="termin.html">Termin buchen</a></div>
 <div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Bildansicht"><button class="x" aria-label="Schließen">✕</button><button class="p" aria-label="Vorheriges Bild">←</button><img alt=""><button class="n" aria-label="Nächstes Bild">→</button></div>
 <script src="/api/booking-config.php"></script>
-<script src="../assets/booking.js?v=16"></script>
-<script src="../assets/contact.js?v=16"></script>
-<script src="../assets/business.js?v=16"></script>
+<script src="../assets/booking.js?v=17"></script>
+<script src="../assets/contact.js?v=17"></script>
+<script src="../assets/business.js?v=17"></script>
 </body>
 </html>

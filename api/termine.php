@@ -89,13 +89,16 @@ if ($a === 'book') {
   // Mail ans Studio
   $r = ['Datum' => $when, 'Uhrzeit' => $time, 'Leistungen' => implode("\n", $names), 'Dauer' => durText($need), 'Preis' => $priceTxt,
         'Name' => $name, 'Telefon' => $phone, 'E-Mail' => $email, 'Notiz' => $note];
-  send(STUDIO_MAIL, 'Neue Buchung: ' . $when . ', ' . hm($start) . ' Uhr – ' . $name,
+  $sentStudio = send(STUDIO_MAIL, 'Neue Buchung: ' . $when . ', ' . hm($start) . ' Uhr – ' . $name,
     "Neue Online-Buchung\n\n" . textRows($r) . "\nTermin stornieren: " . stornoUrl($id, 's') . "\nKalender: " . studioUrl() . "\n",
     layout('Neue Online-Buchung', rows($r) . '<p style="margin:0 0 10px">' . btn(studioUrl(), 'Kalender öffnen') . btn(stornoUrl($id, 's'), 'Termin stornieren', true) . '</p>'
       . '<p style="font-size:13px;color:#7A6F66;margin:0 0 14px">Antworten auf diese E-Mail gehen direkt an die Kundin, sofern sie eine E-Mail angegeben hat.</p>'),
     validEmail($email) ? enc($name) . " <$email>" : null);
 
+  if (!$sentStudio) @file_put_contents(storeDir() . '/mail-fehler.log', date('c') . " Studio-Mail fehlgeschlagen: $id\n", FILE_APPEND);
+
   // Bestätigung an die Kundin
+  $sentCustomer = false;
   if (validEmail($email)) {
     $cr = ['Datum' => $when, 'Uhrzeit' => $time, 'Leistungen' => implode("\n", $names), 'Preis' => $priceTxt . ($price !== null ? ', zahlbar vor Ort' : '')];
     $html = layout('Dein Termin ist gebucht',
@@ -107,10 +110,10 @@ if ($a === 'book') {
       . para('Den Termin findest du auch als Kalenderdatei im Anhang.<br><br>Herzliche Grüße<br>' . h(STUDIO_NAME)));
     $text = "Hallo $name,\n\nvielen Dank für deine Buchung. Wir freuen uns auf dich!\n\n" . textRows($cr) . "\nAdresse: " . ADDRESS
       . "\n\nTermin absagen: " . stornoUrl($id, 'c') . "\nVerschieben oder Fragen: " . PHONE . " (Telefon/WhatsApp)\n\nHerzliche Grüße\n" . STUDIO_NAME . "\n" . SITE . "\n";
-    send($email, 'Dein Termin am ' . $when . ' um ' . hm($start) . ' Uhr', $text, $html, STUDIO_MAIL,
+    $sentCustomer = send($email, 'Dein Termin am ' . $when . ' um ' . hm($start) . ' Uhr', $text, $html, STUDIO_MAIL,
       ['name' => 'termin-wohlfuehlraum-sunny.ics', 'type' => 'text/calendar; charset=UTF-8; method=PUBLISH', 'data' => ics($b)]);
   }
-  out(200, ['ok' => true, 'id' => $id, 'date' => $date, 'start' => $start, 'end' => $end, 'services' => $names, 'mailed' => validEmail($email)]);
+  out(200, ['ok' => true, 'id' => $id, 'date' => $date, 'start' => $start, 'end' => $end, 'services' => $names, 'mailed' => $sentCustomer]);
 }
 
 /* ---------------- HTML-Seiten (Storno, Studio) ---------------- */

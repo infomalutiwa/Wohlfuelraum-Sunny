@@ -20,7 +20,7 @@ $phone   = line((string)($in['phone'] ?? ''), 40);
 $topic   = line((string)($in['topic'] ?? ''), 60);
 $message = clean((string)($in['message'] ?? ''), 3000);
 
-if ((int)($in['t'] ?? 0) < 3000) out(200, ['ok' => true]);              // zu schnell ausgefüllt: Bot
+if ((int)($in['t'] ?? 0) < 3000) out(422, ['ok' => false, 'error' => 'fast']); // in unter 3 Sekunden ausgefüllt: vermutlich Bot
 if ($name === '' || mb_strlen($message) < 5) out(422, ['ok' => false, 'error' => 'fields']);
 if ($email !== '' && !validEmail($email)) out(422, ['ok' => false, 'error' => 'email']);
 if ($email === '' && strlen(preg_replace('/\D/', '', $phone)) < 6) out(422, ['ok' => false, 'error' => 'reach']);

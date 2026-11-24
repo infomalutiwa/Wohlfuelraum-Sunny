@@ -64,7 +64,7 @@ function update(){
   if(!st.svcs.length){sum.hidden=true;$('#bk-go').disabled=false;return}
   sum.hidden=false;
   const m=total(),p=price();
-  const when=st.day?longDay(st.day)+(st.slot?`, ${st.slot}–${fmtT(toMin(st.slot)+m)} Uhr`:''):'noch offen';
+  const when=st.day?longDay(st.day)+(st.slot?`, ${st.slot}–${fmtT(toMin(st.slot)+roundUp(m))} Uhr`:''):'noch offen';
   const list=st.svcs.map(s=>`<div><span>${esc(s.name)}</span><span>${s.price!=null?s.price+' €':'nach Behandlung'}</span></div>`).join('');
   sum.innerHTML=`${list}<div class="tot"><span>Dauer gesamt</span><span>ca. ${fmtDur(m)}</span></div><div><span>Termin</span><span>${when}</span></div><div><span>Preis gesamt</span><span>${p!=null?'<b>'+p+' €</b>':'ab '+st.svcs.reduce((a,s)=>a+(s.price||0),0)+' €, Design nach Aufwand'}</span></div><p style="font-size:.86rem;color:var(--mut)">Bezahlt wird vor Ort. Bitte sag rechtzeitig ab, wenn du nicht kommen kannst.</p>`;
   $('#bk-go').textContent='Termin verbindlich buchen';
@@ -91,7 +91,10 @@ function done(b){
   ${b.email?`<p>Eine Bestätigung mit allen Details schicken wir an <b>${esc(b.email)}</b>.</p>`:''}
   <p>Wir freuen uns auf dich, ${esc(b.name)}! Musst du absagen oder verschieben, ruf bitte an: <a href="tel:+491733098632">0173\u00a03098632</a>.</p>
   <div class="cta"><a class="btn btn-dark" href="${ics(b)}" download="termin-wohlfuehlraum-sunny.ics">In meinen Kalender</a><a class="btn btn-line" href="index.html">Zur Startseite</a></div></div>`;
-  root.querySelector('.bk-done').focus();
+  document.body.classList.add('booked');
+  const h=document.querySelector('.book-page h1');if(h)h.textContent='Danke für deine Buchung';
+  document.getElementById('termin').scrollIntoView({behavior:'smooth',block:'start'});
+  root.querySelector('.bk-done').focus({preventScroll:true});
 }
 
 root.addEventListener('submit',async e=>{
@@ -104,7 +107,7 @@ root.addEventListener('submit',async e=>{
   const go=$('#bk-go');go.disabled=true;go.textContent='Wird gebucht …';
   try{
     const r=await fetch(API+'?a=book',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({services:st.svcs.map(s=>s.id),date:st.day,start:toMin(st.slot),name,phone,email,note,website:String(f.get('website')||'')})});
+      body:JSON.stringify({services:st.svcs.map(s=>s.id),date:st.day,start:toMin(st.slot),name,phone,email,note,website:String(f.get('hp_web')||'')})});
     const j=await r.json().catch(()=>({}));
     if(!r.ok||!j.ok)throw new Error(j.error||'x');
     done({id:j.id,name,email:j.mailed?email:'',date:j.date,start:j.start,end:j.end,services:j.services});
