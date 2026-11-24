@@ -1,7 +1,7 @@
 # Wohlfühlraum Sunny: Stand der Website
 
 Zum Weitermachen in einem neuen Chat: diese Datei zuerst lesen.
-Repo: `infomalutiwa/Sunny-Mails-Beauty`, Branch `ccr-2ec575da-frrsfm` (Stand 31.10.2026). Kein Pull Request angelegt.
+Repo: `infomalutiwa/wohlfuehlraum-sunny` (früher Sunny-Mails-Beauty), Branch `claude/new-session-xv9mjl`.
 Live: https://wohlfuehlraum-sunny.de/ (ALL-INKL). Branch `claude/new-session-xv9mjl`, Deploy automatisch per GitHub Actions.
 
 ## Das Studio (aus den Instagram-Screenshots der Inhaberin)
@@ -29,7 +29,7 @@ Live: https://wohlfuehlraum-sunny.de/ (ALL-INKL). Branch `claude/new-session-xv9
 - Studio-Kalender ohne Login: geheimer Link `api/termine.php?a=studio&k=…` (steht in jeder Buchungs-Mail). Zeigt kommende Termine, stornieren, Zeiten blockieren (Urlaub, Pausen, telefonische Termine). Neuer Link = `api/.store/secret.key` auf dem Server löschen (macht auch alte Storno-Links ungültig).
 - Kontaktformular auf `termin.html#kontakt` → Mail ans Studio.
 - Deploy: GitHub Actions `deploy-allinkl.yml` bei jedem Push, Secrets `FTP_USERNAME`/`FTP_PASSWORD`.
-- Die alte Firebase-Version läuft noch unter sunny-mails-beauty.web.app (nicht mehr gepflegt), Firebase-Projekt kann gelöscht werden.
+- Firebase wird nicht mehr genutzt. Das alte Firebase-Projekt bitte in der Firebase-Konsole löschen.
 
 ## Offen
 1. Fotorechte klären: Gesichtsfotos (Vorher-Nachher) brauchen Einwilligung der Kundinnen. Nägel- und Fußfotos wirken wie Fremdbilder, eigene einsetzen.
