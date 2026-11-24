@@ -184,3 +184,16 @@ footer .fl{flex-wrap:wrap;gap:8px 22px;padding:0 20px}
 .svc-cat[open] summary::after{content:'–'}
 .svc-n{margin-left:auto;font-size:.8rem;font-weight:400;color:var(--gold)}
 .svc-cat .chips{padding:0 18px 18px}
+
+/* Kontaktformular */
+.cf{gap:16px;align-self:start}
+.cf label{display:grid;gap:6px;font-size:.92rem;color:var(--mut)}
+.cf label.chk{display:flex}
+.cf select{width:100%;padding:14px 16px;border:1.5px solid var(--line);border-radius:4px;background:var(--paper);font:400 1rem var(--sans);color:var(--ink);appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 15px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.cf select:focus{border-color:var(--gold);outline:none}
+.cf textarea{resize:vertical;min-height:130px}
+.cf .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.cf .btn{justify-self:start}
+@media(max-width:520px){.cf .btn{justify-self:stretch}}
+#kontakt{scroll-margin-top:90px}

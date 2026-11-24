@@ -1,17 +1,29 @@
 # Wohlfühlraum Sunny – Einstellungen für den Webserver (ALL-INKL / Apache)
-DirectoryIndex index.html
+DirectoryIndex index.html index.php
 Options -Indexes
+ErrorDocument 404 /404.html
 
-# Startseite -> /business/
-RedirectMatch 302 ^/$ /business/
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # immer https und ohne www
+  RewriteCond %{HTTPS} !=on [OR]
+  RewriteCond %{HTTP_HOST} ^www\. [NC]
+  RewriteCond %{HTTP_HOST} ^(www\.)?wohlfuehlraum-sunny\.de$ [NC]
+  RewriteRule ^ https://wohlfuehlraum-sunny.de%{REQUEST_URI} [R=301,L]
+  # Startseite -> /business/
+  RewriteRule ^$ /business/ [R=302,L]
+</IfModule>
 
 # Interne Dateien nicht ausliefern
-<FilesMatch "(\.md|firebase\.json|\.firebaserc|firestore\.rules|firestore\.indexes\.json)$">
+<FilesMatch "(\.md|\.json|firestore\.rules|\.firebaserc|\.zip)$">
   Require all denied
 </FilesMatch>
 
-# HTML, CSS, JS immer frisch laden (wie bisher bei Firebase)
 <IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Strict-Transport-Security "max-age=31536000" env=HTTPS
   <FilesMatch "\.(html|css|js)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
@@ -24,4 +36,5 @@ RedirectMatch 302 ^/$ /business/
   AddType font/woff2 .woff2
   AddType video/webm .webm
   AddType video/mp4 .mp4
+  AddType text/calendar .ics
 </IfModule>

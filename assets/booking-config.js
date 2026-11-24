@@ -11,6 +11,8 @@ window.SUNNY_BOOKING={
   /* Optional: Push aufs Handy/Laptop über die kostenlose App ntfy (ntfy.sh). Themen-Adresse eintragen,
      z. B. 'https://ntfy.sh/sunny-termine-x7k2q9'. Es werden nur Datum, Uhrzeit und Leistung gesendet, kein Name. */
   notify:'',
+  /* E-Mail an Studio und Bestätigung an die Kundin (PHP auf dem ALL-INKL-Server). Leer = keine Mails. */
+  mailApi:'/api/kontakt.php',
   deposit:null,   /* Anzahlungsregel, z. B. {minPrice:200,minMinutes:120,percent:50}. null = keine Anzahlung */
   slotStep:30,
   /* Öffnungszeiten: Wochentag (0 = Sonntag) -> Liste von [von, bis] in Stunden. Fehlt ein Tag, ist er online nicht buchbar

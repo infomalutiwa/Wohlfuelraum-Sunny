@@ -98,6 +98,7 @@ function ics(b){
 function done(b){
   root.innerHTML=`<div class="bk-done" role="status" tabindex="-1"><span class="ok">✓</span><h3>Dein Termin ist gebucht</h3>
   <p><b>${esc(longDay(b.date))}, ${fmtT(b.start)}–${fmtT(b.end)} Uhr</b><br>${b.services.map(esc).join(', ')}</p>
+  ${b.email&&C.mailApi?`<p>Eine Bestätigung mit allen Details schicken wir an <b>${esc(b.email)}</b>.</p>`:''}
   <p>Wir freuen uns auf dich, ${esc(b.name)}! Musst du absagen oder verschieben, ruf bitte an: <a href="tel:+491733098632">0173 3098632</a>.</p>
   <div class="cta"><a class="btn btn-dark" href="${ics(b)}" download="termin-wohlfuehlraum-sunny.ics">In meinen Kalender</a><a class="btn btn-line" href="index.html">Zur Startseite</a></div></div>`;
   root.querySelector('.bk-done').focus();
@@ -124,7 +125,9 @@ root.addEventListener('submit',async e=>{
     for(let m=start;m<end;m+=BLOCK)batch.set(F.doc(db,'slots',st.day+'_'+m),{d:st.day,m,b:ref.id});
     await batch.commit();
     if(C.notify)fetch(C.notify,{method:'POST',headers:{Title:'Neuer Termin',Tags:'calendar'},body:`${when}: ${names.join(', ')} (${fmtDur(minutes)})`}).catch(()=>{});
-    done({id:ref.id,name,date:st.day,start,end,services:names});
+    if(C.mailApi)fetch(C.mailApi,{method:'POST',headers:{'Content-Type':'application/json'},keepalive:true,
+      body:JSON.stringify({type:'booking',id:ref.id,date:st.day,start,end,services:names,name,phone,email,note,price:price()})}).catch(()=>{});
+    done({id:ref.id,name,email,date:st.day,start,end,services:names});
   }catch(x){
     go.disabled=false;update();
     err.textContent=x&&x.code==='permission-denied'?'Diese Uhrzeit wurde gerade von jemand anderem gebucht. Bitte wähle eine andere Zeit.':'Das hat nicht geklappt. Bitte versuche es erneut oder ruf uns an: 0173 3098632.';
