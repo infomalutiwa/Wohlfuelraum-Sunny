@@ -41,5 +41,5 @@ Vorschau (Firebase Hosting, Projekt `sunny-mails-beauty`): https://sunny-mails-b
 2. Eigenes Foto für Augenbrauen & Wimpern und Head Spa (aktuell Platzhalter). Schulungspreise waren im PDF als Vorschlag markiert: vor Veröffentlichung bestätigen.
 3. Dauer laut Preislisten in `booking-config.js` (bei Spannen die längere Zeit), Leistungen in der Buchung nach Bereich gruppiert. Anzahlung/Storno-Regeln gibt es für dieses Studio nicht, `deposit:null`.
 4. Bei ALL-INKL: SSL-Zertifikat (Let's Encrypt) einrichten und HTTPS erzwingen, AV-Vertrag abschließen. In Firebase prüfen, dass Buchung und /mail-Login unter der neuen Domain funktionieren.
-5. Rosa Stellen in Impressum und Datenschutz ausfüllen (Name Inhaberin, E-Mail, Rechtsform, Steuer-ID usw.), rechtlich prüfen.
+5. Impressum/Datenschutz ausgefüllt (Inhaberin Stana Todorovic, Einzelunternehmen, Termindaten max. 90 Tage). Offen: USt-IdNr. nur eintragen, falls eine vergeben wird (Steuernummer gehört nicht ins Impressum). AV-Vertrag bei ALL-INKL und Firebase abschließen. Löschung der Termine nach 90 Tagen ist noch nicht automatisiert. Einwilligung der Personen auf Vorher-Nachher-Fotos sicherstellen.
 6. Rheinfelden-Postleitzahl 79618 gegenprüfen.
