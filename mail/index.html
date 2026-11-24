@@ -146,7 +146,7 @@ $('#login').addEventListener('pointermove',e=>{const x=(e.clientX/innerWidth-.5)
 
 /* Anmeldung */
 const lerr=$('#lerr'),msg=(t,ok)=>{lerr.textContent=t;lerr.classList.toggle('ok',!!ok)};
-const nice=e=>({'auth/invalid-credential':'E-Mail oder Passwort stimmt nicht.','auth/email-already-in-use':'Für diese E-Mail gibt es schon ein Konto. Bitte anmelden.','auth/weak-password':'Das Passwort braucht mindestens 8 Zeichen.','auth/too-many-requests':'Zu viele Versuche. Bitte kurz warten.'}[e.code]||'Das hat nicht geklappt.');
+const nice=e=>({'auth/configuration-not-found':'Die Anmeldung ist in Firebase noch nicht eingeschaltet (Authentication → E-Mail/Passwort).','auth/operation-not-allowed':'Die Anmeldung mit E-Mail und Passwort ist in Firebase noch nicht eingeschaltet.','auth/invalid-credential':'E-Mail oder Passwort stimmt nicht.','auth/email-already-in-use':'Für diese E-Mail gibt es schon ein Konto. Bitte anmelden.','auth/weak-password':'Das Passwort braucht mindestens 8 Zeichen.','auth/too-many-requests':'Zu viele Versuche. Bitte kurz warten.'}[e.code]||'Das hat nicht geklappt.');
 $('#lcard').onsubmit=async e=>{e.preventDefault();msg('');try{await A.signInWithEmailAndPassword(auth,$('#em').value,$('#pw').value)}catch(x){msg(nice(x))}};
 $('#reg').onclick=async()=>{msg('');try{const c=await A.createUserWithEmailAndPassword(auth,$('#em').value,$('#pw').value);await A.sendEmailVerification(c.user);msg('Bestätigungsmail gesendet. Link anklicken, dann hier neu anmelden.',true);await A.signOut(auth)}catch(x){msg(nice(x))}};
 $('#rst').onclick=async()=>{if(!$('#em').value){msg('Bitte E-Mail eintragen.');return}try{await A.sendPasswordResetEmail(auth,$('#em').value);msg('Mail zum Zurücksetzen ist unterwegs.',true)}catch(x){msg(nice(x))}};
