@@ -207,3 +207,4 @@ body.booked .book-page .lead,body.booked .book-page .ticks,body.booked #kontakt{
 body.booked .after-book{display:block;padding:0 0 40px;text-align:center;color:var(--mut)}
 body.booked .after-book a{text-decoration:underline;color:var(--ink)}
 body.booked .book-page{min-height:auto}
+.cf:has(.bk-done){align-content:center}.cf .bk-done{gap:10px}

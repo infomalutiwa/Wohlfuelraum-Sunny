@@ -1,7 +1,7 @@
 # Wohlfühlraum Sunny: Stand der Website
 
 Zum Weitermachen in einem neuen Chat: diese Datei zuerst lesen.
-Repo: `infomalutiwa/wohlfuehlraum-sunny` (früher Sunny-Mails-Beauty), Branch `claude/new-session-xv9mjl`.
+Repo: `infomalutiwa/Wohlfuelraum-Sunny` (früher Sunny-Mails-Beauty), Branch `claude/new-session-xv9mjl`.
 Live: https://wohlfuehlraum-sunny.de/ (ALL-INKL). Branch `claude/new-session-xv9mjl`, Deploy automatisch per GitHub Actions.
 
 ## Das Studio (aus den Instagram-Screenshots der Inhaberin)
