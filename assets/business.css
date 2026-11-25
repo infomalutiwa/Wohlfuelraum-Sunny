@@ -203,7 +203,7 @@ footer .fl{flex-wrap:wrap;gap:8px 22px;padding:0 20px}
 .bk .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 /* Nach erfolgreicher Buchung: kein zweites Formular, Anleitung ausblenden */
 .after-book{display:none}
-body.booked .book-page .lead,body.booked .book-page .ticks,body.booked #kontakt{display:none}
+body.booked .book-page .lead,body.booked .book-page .ticks,body.booked #cf{display:none}
 body.booked .after-book{display:block;padding:0 0 40px;text-align:center;color:var(--mut)}
 body.booked .after-book a{text-decoration:underline;color:var(--ink)}
 body.booked .book-page{min-height:auto}
@@ -235,3 +235,13 @@ body.booked .book-page{min-height:auto}
 @media(max-width:980px){.k-grid{grid-template-columns:1fr 1fr}.k-grid .k-card:last-child{grid-column:1/-1}.k-grid .k-card:last-child .shot{aspect-ratio:16/10}.k-vids{grid-template-columns:1fr 1fr}}
 @media(max-width:760px){.k-head{grid-template-columns:1fr}.k-head .k-logo{order:-1}.k-teaser{grid-template-columns:1fr}}
 @media(max-width:620px){.k-grid{grid-template-columns:1fr}.k-grid .k-card:last-child .shot,.k-card .shot{aspect-ratio:4/3}.k-vids{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin-inline:-20px;padding:0 20px 6px}.k-vids figure{flex:0 0 62%;scroll-snap-align:center}}
+
+/* Termin-Seite: ein Formular mit Reitern (Termin / Nachricht) */
+.fx{display:grid;gap:14px;min-width:0;scroll-margin-top:90px}
+.fx-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:5px;background:#fff;border:1px solid var(--line);border-radius:999px}
+.fx-tabs button{appearance:none;border:0;background:transparent;padding:12px 14px;border-radius:999px;font:500 .95rem var(--sans);color:var(--mut);cursor:pointer;transition:background .25s,color .25s}
+.fx-tabs button[aria-selected=true]{background:linear-gradient(135deg,#C8A97E,#B89355);color:var(--ink)}
+.fx-tabs button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.fx .bk[hidden]{display:none}
+body.booked .fx-tabs{display:none}
+@media(max-width:420px){.fx-tabs button{font-size:.86rem;padding:11px 8px}}

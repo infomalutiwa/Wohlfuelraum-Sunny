@@ -1,4 +1,21 @@
 (()=>{
+/* Reiter: Termin buchen oder Nachricht schreiben (nur ein Formular sichtbar) */
+(()=>{
+  const tabs=[...document.querySelectorAll('.fx-tabs [role=tab]')];if(!tabs.length)return;
+  const h1=document.querySelector('.book-page h1'),lead=document.querySelector('.book-page .lead'),ticks=document.querySelector('.book-page .ticks');
+  if(lead)lead.dataset.bk=lead.textContent;
+  const show=(id,focus)=>{
+    tabs.forEach(t=>{const on=t.getAttribute('aria-controls')===id;t.setAttribute('aria-selected',on);t.tabIndex=on?0:-1;document.getElementById(t.getAttribute('aria-controls')).hidden=!on});
+    if(h1)h1.textContent=h1.dataset[id];if(lead)lead.textContent=lead.dataset[id];if(ticks)ticks.style.display=id==='cf'?'none':'';
+    if(focus)document.getElementById('tab-'+id).focus();
+  };
+  tabs.forEach((t,i)=>{t.onclick=()=>show(t.getAttribute('aria-controls'));
+    t.onkeydown=e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const n=tabs[(i+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];show(n.getAttribute('aria-controls'),true)}}});
+  const fromHash=()=>{if(location.hash==='#kontakt'){show('cf');document.getElementById('termin').scrollIntoView({block:'start'})}};
+  document.querySelectorAll('a[href="#kontakt"]').forEach(a=>a.onclick=e=>{e.preventDefault();show('cf');document.getElementById('termin').scrollIntoView({behavior:'smooth',block:'start'})});
+  addEventListener('hashchange',fromHash);fromHash();
+})();
+
 /* Kontaktformular: schickt die Nachricht per E-Mail ans Studio (api/kontakt.php auf dem ALL-INKL-Server). */
 const f=document.getElementById('cf');if(!f)return;
 const API=(window.SUNNY_BOOKING&&window.SUNNY_BOOKING.mailApi)||'/api/kontakt.php';
