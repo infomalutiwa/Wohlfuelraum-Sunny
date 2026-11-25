@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://wohlfuehlraum-sunny.de/business/</loc></url>
-  <url><loc>https://wohlfuehlraum-sunny.de/business/kosmetik.html</loc></url>
-  <url><loc>https://wohlfuehlraum-sunny.de/business/naegel.html</loc></url>
-  <url><loc>https://wohlfuehlraum-sunny.de/business/fusspflege.html</loc></url>
-  <url><loc>https://wohlfuehlraum-sunny.de/business/augenbrauen-wimpern.html</loc></url>
-  <url><loc>https://wohlfuehlraum-sunny.de/business/preise.html</loc></url>
-  <url><loc>https://wohlfuehlraum-sunny.de/business/galerie.html</loc></url>
-  <url><loc>https://wohlfuehlraum-sunny.de/business/termin.html</loc></url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url><loc>https://wohlfuehlraum-sunny.de/business/</loc><lastmod>2026-11-25</lastmod><priority>1.0</priority><image:image><image:loc>https://wohlfuehlraum-sunny.de/img/klapp/sortiment.jpg</image:loc></image:image><image:image><image:loc>https://wohlfuehlraum-sunny.de/img/klapp/toner-augen.jpg</image:loc></image:image><image:image><image:loc>https://wohlfuehlraum-sunny.de/img/empfang.jpg</image:loc></image:image></url>
+  <url><loc>https://wohlfuehlraum-sunny.de/business/kosmetik.html</loc><lastmod>2026-11-25</lastmod><priority>0.9</priority><image:image><image:loc>https://wohlfuehlraum-sunny.de/img/klapp/sortiment.jpg</image:loc></image:image><image:image><image:loc>https://wohlfuehlraum-sunny.de/img/klapp/pha-toner.jpg</image:loc></image:image><image:image><image:loc>https://wohlfuehlraum-sunny.de/img/klapp/elixir.jpg</image:loc></image:image><image:image><image:loc>https://wohlfuehlraum-sunny.de/img/kosmetik.jpg</image:loc></image:image></url>
+  <url><loc>https://wohlfuehlraum-sunny.de/business/naegel.html</loc><lastmod>2026-11-25</lastmod><priority>0.9</priority></url>
+  <url><loc>https://wohlfuehlraum-sunny.de/business/fusspflege.html</loc><lastmod>2026-11-25</lastmod><priority>0.9</priority></url>
+  <url><loc>https://wohlfuehlraum-sunny.de/business/augenbrauen-wimpern.html</loc><lastmod>2026-11-25</lastmod><priority>0.9</priority></url>
+  <url><loc>https://wohlfuehlraum-sunny.de/business/preise.html</loc><lastmod>2026-11-25</lastmod><priority>0.8</priority></url>
+  <url><loc>https://wohlfuehlraum-sunny.de/business/termin.html</loc><lastmod>2026-11-25</lastmod><priority>0.8</priority></url>
+  <url><loc>https://wohlfuehlraum-sunny.de/business/galerie.html</loc><lastmod>2026-11-25</lastmod><priority>0.6</priority></url>
 </urlset>

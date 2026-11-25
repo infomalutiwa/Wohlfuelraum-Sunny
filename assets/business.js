@@ -24,6 +24,13 @@ if(shots.length&&lb){
   addEventListener('keydown',e=>{if(!lb.classList.contains('open'))return;if(e.key==='Escape')lb.classList.remove('open');if(e.key==='ArrowRight')show(cur+1);if(e.key==='ArrowLeft')show(cur-1)});
 }
 
+/* Kurze Produktvideos nur abspielen, solange sie sichtbar sind */
+const vids=$$('.k-vids video');
+if(vids.length&&'IntersectionObserver' in window&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
+  const vo=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;if(e.isIntersecting){v.preload='auto';const p=v.play();if(p&&p.catch)p.catch(()=>{})}else v.pause()}),{threshold:.35});
+  vids.forEach(v=>vo.observe(v));
+}else vids.forEach(v=>v.controls=true);
+
 /* Geöffnet-Anzeige und heutiger Tag */
 const n=new Date(),d=n.getDay(),m=n.getHours()*60+n.getMinutes();
 const H={1:[[480,780]],2:[[480,780],[900,1200]],4:[[480,780],[900,1200]],5:[[600,960]]};

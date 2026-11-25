@@ -20,6 +20,12 @@ Live: https://wohlfuehlraum-sunny.de/ (ALL-INKL). Branch `claude/new-session-xv9
 - `assets/`: `style.css`, `business.css`, `business.js`, `booking.js`, `booking-config.js` (Leistungen, Preise, Zeiten; Dauer sind Schätzwerte). `img/`: Stimmungsbilder von Unsplash (kostenlos, auch gewerblich, ohne Namensnennung; Unsplash-Lizenz): spa-kerzen, spa-handtuecher, empfang, kosmetik, naegel, naegel-2, fussmassage, wimpern, creme, marmor. Vorher-Nachher (`haut-1..3`) sind echte Studiofotos. Die alten Studiofotos wurden auf Wunsch der Inhaberin entfernt. Später gern durch eigene, professionelle Fotos ersetzen.
 - Domain: `wohlfuehlraum-sunny.de` (Hosting ALL-INKL, Account w022499d, Ordner `/wohlfuehlraum-sunny.de/`) steht in canonical, og:url, sitemap, robots. Upload per FTP: Inhalt von Repo-Root ohne .git, *.md, firebase-Dateien; `.htaccess` leitet / auf /business/ und regelt Caching. Firebase bleibt für die Buchung (Firestore) zuständig.
 
+## KLAPP und SEO (25.11.2026)
+- Das Studio arbeitet mit KLAPP Skin Care Science. Material der Kundin (Bilder, Videos, Logo-PDF) liegt optimiert in `img/klapp/` (Logo als SVG, 4 Videos stumm als mp4+webm, je mit Vorschaubild).
+- Kosmetik-Seite: Abschnitt `#klapp` mit 3 Produktkarten (Purify, PHA Toner, ExoGen) und 4 Videos (spielen nur, wenn sichtbar; Code in `business.js`). Startseite: KLAPP-Teaser und Ortstext für die lokale Suche. Galerie: 3 KLAPP-Bilder.
+- Bewusst nicht übernommen: Prozentangaben und „8 Jahre jünger“ aus der ExoGen-Werbung (Werberecht), englische Erklär-Videos.
+- SEO: Titel/Beschreibungen/Keywords pro Seite, erweitertes BeautySalon-JSON-LD, Sitemap mit Bildern, 301 auf /business/. Stichworte und To-dos für die Inhaberin: `SEO-STICHWORTE.md`.
+
 ## Buchung und E-Mail (seit 24.11.2026 alles bei ALL-INKL, Firebase entfernt)
 - Server-Skripte in `api/`: `_lib.php` (Öffnungszeiten, Leistungen, Mail-Vorlagen, Datenbank), `termine.php` (Buchung, Storno, Studio-Kalender), `kontakt.php` (Kontaktformular), `booking-config.php` (liefert Zeiten und Leistungen an die Buchungsseite).
 - **Leistungen und Öffnungszeiten nur noch in `api/_lib.php` ändern** (einzige Quelle).

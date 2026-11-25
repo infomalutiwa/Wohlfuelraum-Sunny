@@ -208,3 +208,30 @@ body.booked .after-book{display:block;padding:0 0 40px;text-align:center;color:v
 body.booked .after-book a{text-decoration:underline;color:var(--ink)}
 body.booked .book-page{min-height:auto}
 .cf:has(.bk-done){align-content:center}.cf .bk-done{gap:10px}
+
+/* KLAPP: Partnermarke mit Produkten und Videos */
+.klapp{background:linear-gradient(180deg,var(--paper),#F4F6F8 60%,var(--paper));padding-top:clamp(56px,8vw,100px)}
+.k-head{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:end}
+.k-logo{width:clamp(140px,18vw,210px);height:auto;opacity:.92}
+.k-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:40px}
+.k-card{background:#fff;border:1px solid var(--line);border-radius:24px;overflow:hidden;display:flex;flex-direction:column}
+.k-card .shot{display:block;width:100%;aspect-ratio:4/5;overflow:hidden;border-radius:0;padding:0;border:0;background:#eef1f4;cursor:zoom-in}
+.k-card .shot img{width:100%;height:100%;object-fit:cover;transition:transform .9s cubic-bezier(.2,.8,.2,1)}
+.k-card:hover .shot img{transform:scale(1.04)}
+.k-card>div{padding:22px 24px 26px}
+.k-card h3{font-size:1.6rem;margin-bottom:8px}
+.k-card p{color:var(--mut);font-size:.98rem}
+.k-sub{font-size:clamp(1.6rem,3vw,2.2rem);margin-top:56px}
+.k-vids{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:22px}
+.k-vids figure{margin:0;position:relative;border-radius:20px;overflow:hidden;background:#e9ecef;aspect-ratio:9/16}
+.k-vids video{width:100%;height:100%;object-fit:cover;display:block}
+.k-vids figcaption{position:absolute;left:12px;bottom:12px;padding:6px 12px;border-radius:999px;background:rgba(251,248,243,.92);font:500 .72rem var(--sans);letter-spacing:.08em;text-transform:uppercase}
+.klapp .cta{margin-top:26px}
+.k-teaser{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(24px,5vw,70px);align-items:center}
+.k-teaser .pics{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.k-teaser .pics img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:22px}
+.k-teaser .pics img:last-child{margin-top:40px}
+.k-teaser .k-logo{display:block;margin-bottom:18px}
+@media(max-width:980px){.k-grid{grid-template-columns:1fr 1fr}.k-grid .k-card:last-child{grid-column:1/-1}.k-grid .k-card:last-child .shot{aspect-ratio:16/10}.k-vids{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.k-head{grid-template-columns:1fr}.k-head .k-logo{order:-1}.k-teaser{grid-template-columns:1fr}}
+@media(max-width:620px){.k-grid{grid-template-columns:1fr}.k-grid .k-card:last-child .shot,.k-card .shot{aspect-ratio:4/3}.k-vids{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin-inline:-20px;padding:0 20px 6px}.k-vids figure{flex:0 0 62%;scroll-snap-align:center}}
