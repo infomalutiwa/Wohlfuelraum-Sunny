@@ -245,3 +245,9 @@ body.booked .book-page{min-height:auto}
 .fx .bk[hidden]{display:none}
 body.booked .fx-tabs{display:none}
 @media(max-width:420px){.fx-tabs button{font-size:.86rem;padding:11px 8px}}
+
+/* Startbild: Cremetiegel mit langsamem Zoom */
+.h2-bg picture{display:block;width:100%;height:100%}
+.h2-bg .kb{animation:kb 28s ease-in-out infinite alternate;transform-origin:56% 45%}
+@keyframes kb{from{transform:scale(1)}to{transform:scale(1.12)}}
+@media(prefers-reduced-motion:reduce){.h2-bg .kb{animation:none}}
