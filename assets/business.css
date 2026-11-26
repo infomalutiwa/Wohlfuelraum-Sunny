@@ -247,14 +247,3 @@ body.booked .fx-tabs{display:none}
 @media(max-width:420px){.fx-tabs button{font-size:.86rem;padding:11px 8px}}
 
 
-/* Startseite: helles Video, Text links (Gesicht steht rechts im Video) */
-@media(min-width:761px){
-  .hero2.hl{place-items:center stretch;text-align:left}
-  .hero2.hl::before{background:linear-gradient(90deg,rgba(46,34,25,.62) 0%,rgba(46,34,25,.42) 38%,rgba(46,34,25,.08) 68%,rgba(46,34,25,0) 100%)}
-  .hero2.hl .h2-in{align-items:flex-start;max-width:none}
-  .hero2.hl .h2-in>*{max-width:600px}
-  .hero2.hl h1{font-size:clamp(3.2rem,6.6vw,6.2rem)}
-  .hero2.hl .lead{margin:0}
-  .hero2.hl .cta{justify-content:flex-start}
-}
-@media(max-width:760px){.hero2.hl::before{background:linear-gradient(rgba(46,34,25,.35),rgba(46,34,25,.55) 45%,rgba(46,34,25,.35))}}
