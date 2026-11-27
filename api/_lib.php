@@ -150,13 +150,21 @@ function requireOrigin(): void {
   $host = parse_url($origin, PHP_URL_HOST) ?: '';
   if (!in_array($host, ALLOWED_HOSTS, true)) out(403, ['ok' => false, 'error' => 'origin']);
 }
-function rateLimit(string $bucket, int $perHour): bool {
-  $key = hash('sha256', $bucket . ($_SERVER['REMOTE_ADDR'] ?? '') . date('Y-m-d-H'));
+function rateLimit(string $bucket, int $perHour, string $window = 'Y-m-d-H'): bool {
+  $key = hash('sha256', $bucket . ($_SERVER['REMOTE_ADDR'] ?? '') . date($window));
   $f = storeDir() . '/rl-' . substr($key, 0, 24);
   $n = (int)@file_get_contents($f);
   if ($n >= $perHour) return false;
   @file_put_contents($f, (string)($n + 1));
-  if (mt_rand(1, 20) === 1) foreach (glob(storeDir() . '/rl-*') ?: [] as $x) if (filemtime($x) < time() - 7200) @unlink($x);
+  if (mt_rand(1, 20) === 1) foreach (glob(storeDir() . '/rl-*') ?: [] as $x) if (filemtime($x) < time() - 26 * 3600) @unlink($x);
+  return true;
+}
+function globalLimit(string $bucket, int $max, string $window = 'Y-m-d-H'): bool {
+  $f = storeDir() . '/gl-' . substr(hash('sha256', $bucket . date($window)), 0, 24);
+  $n = (int)@file_get_contents($f);
+  if ($n >= $max) return false;
+  @file_put_contents($f, (string)($n + 1), LOCK_EX);
+  if (mt_rand(1, 20) === 1) foreach (glob(storeDir() . '/gl-*') ?: [] as $x) if (filemtime($x) < time() - 26 * 3600) @unlink($x);
   return true;
 }
 function jsonInput(): array {
@@ -175,7 +183,7 @@ function secret(): string {
 function sign(string $what): string { return substr(hash_hmac('sha256', $what, secret()), 0, 32); }
 function checkSig(string $what, string $sig): bool { return hash_equals(sign($what), $sig); }
 function stornoUrl(string $id, string $who): string { return SITE . '/api/termine.php?a=storno&id=' . $id . '&w=' . $who . '&k=' . sign("storno:$who:$id"); }
-function studioUrl(): string { return SITE . '/studio/#k=' . sign('studio'); }
+function studioUrl(): string { return SITE . '/studio/'; }
 
 /* ---------- Datenbank ---------- */
 function db(): PDO {
@@ -193,6 +201,8 @@ function db(): PDO {
   $pdo->exec("CREATE TABLE IF NOT EXISTS closures (id TEXT PRIMARY KEY, kind TEXT NOT NULL, d_from TEXT NOT NULL, d_to TEXT NOT NULL, label TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS messages (id TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', email TEXT NOT NULL DEFAULT '', phone TEXT NOT NULL DEFAULT '',
       topic TEXT NOT NULL DEFAULT '', message TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'neu', created_at TEXT NOT NULL);");
+  $pdo->exec("CREATE TABLE IF NOT EXISTS settings (k TEXT PRIMARY KEY, v TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS sessions (h TEXT PRIMARY KEY, created TEXT NOT NULL, expires INTEGER NOT NULL, ua TEXT NOT NULL DEFAULT '');");
   $cols = array_column($pdo->query('PRAGMA table_info(bookings)')->fetchAll(), 'name');
   if (!in_array('source', $cols, true)) $pdo->exec("ALTER TABLE bookings ADD COLUMN source TEXT NOT NULL DEFAULT 'online'");
   if (!in_array('seen', $cols, true)) $pdo->exec("ALTER TABLE bookings ADD COLUMN seen INTEGER NOT NULL DEFAULT 0");
@@ -203,6 +213,7 @@ function db(): PDO {
     $pdo->prepare('DELETE FROM slots WHERE d < ?')->execute([date('Y-m-d')]);
     $pdo->prepare('DELETE FROM messages WHERE created_at < ?')->execute([$cut]);
     $pdo->prepare('DELETE FROM closures WHERE d_to < ?')->execute([$cut]);
+    $pdo->prepare('DELETE FROM sessions WHERE expires < ?')->execute([time()]);
   }
   return $pdo;
 }
@@ -321,4 +332,39 @@ function cancelBooking(string $id): void {
   $pdo->prepare("UPDATE bookings SET status = 'storniert', cancelled_at = ? WHERE id = ?")->execute([date('c'), $id]);
   $pdo->prepare('DELETE FROM slots WHERE booking_id = ?')->execute([$id]);
   $pdo->exec('COMMIT');
+}
+
+/* ---------- Anmeldung Studio-Kalender ----------
+   Passwort (password_hash) in der Tabelle settings, Sitzungen als zufälliges Token im Cookie (HttpOnly, Secure, SameSite=Strict),
+   in der Datenbank nur als SHA-256-Hash. Passwort setzen/zurücksetzen nur über einen Link, der an STUDIO_MAIL geht (1 Stunde gültig, einmalig). */
+const SESSION_COOKIE = 'sunny_studio';
+const SESSION_DAYS   = 30;
+const PW_MIN         = 10;
+function setting(string $k): ?string { $s = db()->prepare('SELECT v FROM settings WHERE k = ?'); $s->execute([$k]); $v = $s->fetchColumn(); return $v === false ? null : $v; }
+function setSetting(string $k, string $v): void { db()->prepare('INSERT INTO settings (k, v) VALUES (?, ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v')->execute([$k, $v]); }
+function isLocalHost(): bool { return in_array(parse_url('http://' . ($_SERVER['HTTP_HOST'] ?? ''), PHP_URL_HOST), ['127.0.0.1', 'localhost'], true); }
+function sessionCookie(string $value, int $expires): void {
+  setcookie(SESSION_COOKIE, $value, ['expires' => $expires, 'path' => '/api/', 'secure' => !isLocalHost(), 'httponly' => true, 'samesite' => 'Strict']);
+}
+function studioLoggedIn(): bool {
+  $t = (string)($_COOKIE[SESSION_COOKIE] ?? '');
+  if (!preg_match('/^[a-f0-9]{64}$/', $t)) return false;
+  $s = db()->prepare('SELECT expires FROM sessions WHERE h = ?'); $s->execute([hash('sha256', $t)]);
+  $exp = $s->fetchColumn();
+  return $exp !== false && (int)$exp > time();
+}
+function startSession(): void {
+  $t = bin2hex(random_bytes(32)); $exp = time() + SESSION_DAYS * 86400;
+  db()->prepare('INSERT INTO sessions (h, created, expires, ua) VALUES (?,?,?,?)')->execute([hash('sha256', $t), date('c'), $exp, mb_substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 200)]);
+  sessionCookie($t, $exp);
+}
+function endSession(bool $all = false): void {
+  if ($all) db()->exec('DELETE FROM sessions');
+  else db()->prepare('DELETE FROM sessions WHERE h = ?')->execute([hash('sha256', (string)($_COOKIE[SESSION_COOKIE] ?? ''))]);
+  sessionCookie('', time() - 3600);
+}
+function resetToken(int $exp): string { return $exp . '.' . substr(hash_hmac('sha256', "reset:$exp:" . (setting('pw') ?? ''), secret()), 0, 40); }
+function checkResetToken(string $t): bool {
+  if (!preg_match('/^(\d{10})\.([a-f0-9]{40})$/', $t, $m) || (int)$m[1] < time() || (int)$m[1] > time() + 3700) return false;
+  return hash_equals(resetToken((int)$m[1]), $t);
 }

@@ -16,10 +16,10 @@
 <link rel="icon" href="/img/favicon.png">
 <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/dmserif.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="studio.css?v=1">
+<link rel="stylesheet" href="studio.css?v=2">
 </head>
 <body>
-<div class="app" id="app" aria-busy="true">
+<div class="app" id="app" aria-busy="true" hidden>
   <aside class="side" aria-label="Navigation">
     <div class="side-brand"><img src="/img/logo-word.png" alt="Wohlfühlraum Sunny" width="520" height="131"></div>
     <nav class="nav" id="nav">
@@ -34,6 +34,7 @@
       <span><i class="dot block"></i>Blockiert</span>
       <span><i class="dot closed"></i>Geschlossen / Feiertag</span>
       <span><i class="dot vac"></i>Urlaub</span>
+      <button type="button" class="txt side-out" data-logout>Abmelden</button>
     </div>
   </aside>
 
@@ -77,14 +78,23 @@
 </div>
 
 <div class="locked" id="locked" hidden>
-  <img src="/img/logo-word.png" alt="Wohlfühlraum Sunny" width="260">
-  <h1>Studio-Kalender</h1>
-  <p>Bitte öffne den Kalender über den Link „Kalender öffnen“ in einer Buchungs-E-Mail. Danach merkt sich dieses Gerät den Zugang.</p>
+  <div class="auth">
+    <img src="/img/logo-word.png" alt="Wohlfühlraum Sunny" width="220">
+    <h1 id="au-t">Studio-Kalender</h1>
+    <p class="au-sub" id="au-sub"></p>
+    <form id="au-form" novalidate>
+      <input type="text" name="username" value="Studio" autocomplete="username" hidden>
+      <div class="group" id="au-fields"></div>
+      <p class="err" id="au-err" role="alert"></p>
+      <button type="submit" class="au-btn" id="au-go">Anmelden</button>
+    </form>
+    <button type="button" class="txt" id="au-alt"></button>
+  </div>
 </div>
 
 <dialog class="sheet" id="sheet" aria-labelledby="sheet-t"><form method="dialog" class="sheet-in" id="sheet-in" novalidate></form></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="studio.js?v=1" defer></script>
+<script src="studio.js?v=2" defer></script>
 </body>
 </html>

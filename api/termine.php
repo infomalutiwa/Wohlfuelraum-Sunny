@@ -42,7 +42,10 @@ if ($a === 'book') {
   requireOrigin();
   $in = jsonInput();
   if (!empty($in['website'])) out(200, ['ok' => false, 'error' => 'fields']);   // Honeypot
-  if (!rateLimit('book', 10)) out(429, ['ok' => false, 'error' => 'rate']);
+  // Schutz gegen Massen- und Spaßbuchungen: pro Gerät/IP max. 5 pro Stunde und 8 pro Tag, insgesamt max. 40 pro Tag,
+  // Formular muss mindestens 5 Sekunden offen gewesen sein, pro Telefonnummer/E-Mail max. 3 offene Termine.
+  if ((int)($in['t'] ?? 0) < 5000) out(422, ['ok' => false, 'error' => 'fast']);
+  if (!rateLimit('book', 5) || !rateLimit('book-day', 8, 'Y-m-d')) out(429, ['ok' => false, 'error' => 'rate']);
 
   $date = (string)($in['date'] ?? '');
   $start = (int)($in['start'] ?? -1);
@@ -54,7 +57,8 @@ if ($a === 'book') {
 
   if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || !strtotime($date)) out(422, ['ok' => false, 'error' => 'date']);
   if ($name === '') out(422, ['ok' => false, 'error' => 'name']);
-  if (strlen(preg_replace('/\D/', '', $phone)) < 6) out(422, ['ok' => false, 'error' => 'phone']);
+  $digits = preg_replace('/\D/', '', $phone);
+  if (strlen($digits) < 6 || strlen($digits) > 16) out(422, ['ok' => false, 'error' => 'phone']);
   if ($email !== '' && !validEmail($email)) out(422, ['ok' => false, 'error' => 'email']);
   if (!$ids || count($ids) > 6) out(422, ['ok' => false, 'error' => 'services']);
 
@@ -74,6 +78,14 @@ if ($a === 'book') {
   if (!$fits || in_array($date, closedDays(), true)) out(422, ['ok' => false, 'error' => 'hours']);
   if ($startTs < time() + BOOKING['minLead'] * 60) out(422, ['ok' => false, 'error' => 'lead']);
   if ($startTs > strtotime('today') + (BOOKING['daysAhead'] + 1) * 86400) out(422, ['ok' => false, 'error' => 'ahead']);
+
+  $tail = substr($digits, -8);
+  $open = db()->prepare("SELECT phone, email FROM bookings WHERE kind = 'termin' AND status = 'gebucht' AND source = 'online' AND date >= ?");
+  $open->execute([date('Y-m-d')]);
+  $same = 0;
+  foreach ($open->fetchAll() as $o) if (substr(preg_replace('/\D/', '', $o['phone']), -8) === $tail || ($email !== '' && strcasecmp($o['email'], $email) === 0)) $same++;
+  if ($same >= 3) out(422, ['ok' => false, 'error' => 'limit']);
+  if (!globalLimit('book-all', 40, 'Y-m-d')) out(429, ['ok' => false, 'error' => 'rate']);
 
   $id = bin2hex(random_bytes(8));
   $names = array_column($chosen, 'name');
@@ -99,8 +111,8 @@ if ($a === 'book') {
   $r = ['Datum' => $when, 'Uhrzeit' => $time, 'Leistungen' => implode("\n", $names), 'Dauer' => durText($need), 'Preis' => $priceTxt,
         'Name' => $name, 'Telefon' => $phone, 'E-Mail' => $email, 'Notiz' => $note];
   $sentStudio = send(STUDIO_MAIL, 'Neue Buchung: ' . $when . ', ' . hm($start) . ' Uhr – ' . $name,
-    "Neue Online-Buchung\n\n" . textRows($r) . "\nTermin stornieren: " . stornoUrl($id, 's') . "\nKalender: " . studioUrl() . "\n",
-    layout('Neue Online-Buchung', rows($r) . '<p style="margin:0 0 10px">' . btn(studioUrl(), 'Kalender öffnen') . btn(stornoUrl($id, 's'), 'Termin stornieren', true) . '</p>'
+    "Neue Online-Buchung\n\n" . textRows($r) . "\nKalender: " . studioUrl() . "\n",
+    layout('Neue Online-Buchung', rows($r) . '<p style="margin:0 0 10px">' . btn(studioUrl(), 'Im Kalender ansehen') . '</p>'
       . '<p style="font-size:13px;color:#7A6F66;margin:0 0 14px">Antworten auf diese E-Mail gehen direkt an die Kundin, sofern sie eine E-Mail angegeben hat.</p>'),
     validEmail($email) ? enc($name) . " <$email>" : null);
 
@@ -142,7 +154,8 @@ function details(array $b): string {
 /* ---------------- Stornieren ---------------- */
 if ($a === 'storno') {
   $id = preg_replace('/[^a-f0-9]/', '', (string)($_GET['id'] ?? ''));
-  $who = ($_GET['w'] ?? '') === 's' ? 's' : 'c';
+  if (($_GET['w'] ?? '') === 's') { header('Location: ' . studioUrl(), true, 302); exit; }   // Studio storniert nur noch im Kalender (mit Anmeldung)
+  $who = 'c';
   $k = (string)($_GET['k'] ?? '');
   $b = $id ? booking($id) : null;
   if (!$b || !checkSig("storno:$who:$id", $k)) page('Link ungültig', '<div class="card err"><h1>Dieser Link ist nicht gültig</h1><p>Der Termin wurde nicht gefunden oder ist bereits abgelaufen. Bitte melde dich telefonisch oder per WhatsApp: <a href="tel:' . PHONE_INTL . '">' . h(PHONE) . '</a>.</p></div>');
@@ -182,7 +195,6 @@ if ($a === 'storno') {
 
 /* ---------------- Alter Studio-Link: weiter zum neuen Studio-Kalender ---------------- */
 if ($a === 'studio') {
-  if (!checkSig('studio', (string)($_GET['k'] ?? ''))) page('Link ungültig', '<div class="card err"><h1>Dieser Link ist nicht gültig</h1><p>Bitte den Link aus einer aktuellen Buchungs-E-Mail verwenden.</p></div>');
   header('Location: ' . studioUrl(), true, 302); exit;
 }
 

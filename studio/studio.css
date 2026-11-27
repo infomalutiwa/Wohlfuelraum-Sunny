@@ -268,6 +268,20 @@ button.row:active{background:var(--fill)}
   -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
+/* Anmeldung */
+.auth{width:min(380px,100%);display:grid;justify-items:center;text-align:center}
+.auth img{width:200px;height:auto;margin-bottom:6px}
+.au-sub{max-width:36ch;color:var(--ink2);margin:4px 0 24px;line-height:1.5}
+.au-sub b{color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+#au-form{width:100%;text-align:left}
+#au-form .group{margin-bottom:16px}
+#au-form .fld input{text-align:left}
+.au-btn{width:100%;border:0;border-radius:12px;background:var(--tint);color:#fff;font-weight:600;font-size:16px;padding:14px;transition:transform 160ms var(--ease-out),opacity 160ms ease}
+@media (prefers-color-scheme:dark){.au-btn{color:#1C1A18}}
+.au-btn:active{transform:scale(.97)}.au-btn:disabled{opacity:.5}
+#au-alt{margin-top:14px}
+.side-out{justify-self:start;padding:10px 0 0;font-size:13px}
+#au-err{margin:-6px 4px 12px}
 /* Gesperrt */
 .locked{position:fixed;inset:0;display:grid;place-content:center;justify-items:center;text-align:center;padding:24px;gap:6px;background:var(--bg)}
 .locked h1{font:400 32px "DM Serif",Georgia,serif;margin:16px 0 4px}

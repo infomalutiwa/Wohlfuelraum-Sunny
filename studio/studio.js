@@ -39,20 +39,58 @@ const ICON={
   lock:'<svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>'
 };
 
-/* ---------- Zugang ---------- */
-const hp=new URLSearchParams(location.hash.slice(1));
-let KEY=hp.get('k');
-try{if(KEY)localStorage.setItem('sunny-studio-k',KEY);else KEY=localStorage.getItem('sunny-studio-k')}catch(e){}
-const flashMsg={storniert:'Termin storniert',frei:'Zeit wieder freigegeben',blockiert:'Zeit blockiert'}[hp.get('msg')];
-if(KEY&&hp.get('msg'))history.replaceState(null,'','#k='+KEY);
-function lock(){$('#app').hidden=true;$('#locked').hidden=false}
-if(!KEY){lock();return}
+/* ---------- Anmeldung ---------- */
+try{localStorage.removeItem('sunny-studio-k')}catch(e){}   // alter Link-Zugang, wird nicht mehr genutzt
+let resetTok=new URLSearchParams(location.hash.slice(1)).get('reset');
+if(location.hash)history.replaceState(null,'',location.pathname);
+addEventListener('hashchange',()=>{const t=new URLSearchParams(location.hash.slice(1)).get('reset');history.replaceState(null,'',location.pathname);if(t){resetTok=t;lock('reset')}});
+let started=false;
+function lock(mode){
+  $('#app').hidden=true;$('#locked').hidden=false;closeSheet&&dlg?.open&&dlg.close();
+  const f=$('#au-fields'),go=$('#au-go'),alt=$('#au-alt'),sub=$('#au-sub'),t=$('#au-t'),err=$('#au-err');err.textContent='';go.disabled=false;go.hidden=false;
+  const pw=(id,ac,ph)=>`<label class="fld"><span>${ph}</span><input type="password" id="${id}" autocomplete="${ac}" required minlength="10" maxlength="200"></label>`;
+  if(mode==='login'){t.textContent='Studio-Kalender';sub.textContent='Melde dich mit deinem Passwort an.';f.innerHTML=pw('au-pw','current-password','Passwort');go.textContent='Anmelden';alt.textContent='Passwort vergessen?';alt.hidden=false;alt.onclick=()=>lock('forgot')}
+  if(mode==='setup'){t.textContent='Zugang einrichten';sub.innerHTML='Zum Schutz deiner Kundendaten braucht der Kalender ein Passwort. Wir schicken dir dafür einen Link an <b>info@wohlfuehlraum-sunny.de</b>.';f.innerHTML='';go.textContent='Link senden';alt.hidden=true}
+  if(mode==='forgot'){t.textContent='Passwort vergessen';sub.innerHTML='Wir schicken einen Link zum Festlegen eines neuen Passworts an <b>info@wohlfuehlraum-sunny.de</b>.';f.innerHTML='';go.textContent='Link senden';alt.textContent='Zurück zur Anmeldung';alt.hidden=false;alt.onclick=()=>lock('login')}
+  if(mode==='sent'){t.textContent='E-Mail ist unterwegs';sub.innerHTML='Öffne die E-Mail an <b>info@wohlfuehlraum-sunny.de</b> und tippe auf „Passwort festlegen“. Der Link ist eine Stunde gültig. Keine E-Mail da? Schau im Spam-Ordner nach.';f.innerHTML='';go.hidden=true;alt.textContent='Zurück zur Anmeldung';alt.hidden=false;alt.onclick=()=>lock('login')}
+  if(mode==='reset'){t.textContent='Neues Passwort';sub.textContent='Mindestens 10 Zeichen. Am besten ein Satz, den du dir gut merken kannst.';f.innerHTML=pw('au-pw','new-password','Passwort')+pw('au-pw2','new-password','Wiederholen');go.textContent='Passwort speichern';alt.hidden=true}
+  f.hidden=!f.innerHTML;
+  $('#au-form').dataset.mode=mode;
+  setTimeout(()=>$('#au-pw')?.focus(),50);
+}
+$('#au-form').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const mode=e.currentTarget.dataset.mode,err=$('#au-err'),go=$('#au-go'),pw=$('#au-pw')?.value||'';err.textContent='';
+  if(mode==='login'&&!pw){err.textContent='Bitte gib dein Passwort ein.';return}
+  if(mode==='reset'){if(pw.length<10){err.textContent='Das Passwort braucht mindestens 10 Zeichen.';return}if(pw!==$('#au-pw2').value){err.textContent='Die beiden Passwörter stimmen nicht überein.';return}}
+  go.disabled=true;
+  try{
+    if(mode==='login')await api('login',{},{password:pw});
+    else if(mode==='reset')await api('reset',{},{token:resetTok,password:pw});
+    else{await api('reset_request',{},{});lock('sent');return}
+    $('#locked').hidden=true;$('#app').hidden=false;
+    if(mode==='reset')toast('Passwort gespeichert. Andere Geräte wurden abgemeldet.',4000);
+    start();
+  }catch(x){
+    go.disabled=false;
+    err.textContent={password:'Das Passwort stimmt nicht.',rate:'Zu viele Versuche. Bitte warte eine Stunde oder setze das Passwort zurück.',
+      token:'Dieser Link ist abgelaufen oder wurde schon benutzt. Fordere bitte einen neuen an.',short:'Das Passwort braucht mindestens 10 Zeichen.',setup:'Bitte zuerst den Zugang einrichten.'}[x.message]||'Das hat nicht geklappt. Prüfe die Internetverbindung und versuche es erneut.';
+    if(x.message==='token'){$('#au-alt').textContent='Neuen Link anfordern';$('#au-alt').hidden=false;$('#au-alt').onclick=()=>lock('forgot')}
+    if(x.message==='password')$('#au-pw').select();
+  }
+});
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-logout]');if(!b)return;
+  const all=b.hasAttribute('data-all');
+  try{await api('logout',{},{all})}catch(x){}
+  location.reload();
+});
 
 async function api(a,params={},body){
   const q=new URLSearchParams({a,...params});
-  const r=await fetch(API+'?'+q,{method:body?'POST':'GET',cache:'no-store',headers:{'X-Studio-Key':KEY,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});
+  const r=await fetch(API+'?'+q,{method:body?'POST':'GET',cache:'no-store',credentials:'same-origin',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined});
   const j=await r.json().catch(()=>({ok:false,error:'net'}));
-  if(r.status===403&&j.error==='key'){try{localStorage.removeItem('sunny-studio-k')}catch(e){}lock();throw new Error('key')}
+  if(r.status===401&&j.error==='auth'){lock('login');throw new Error('key')}
   if(!r.ok||!j.ok){const e=new Error(j.error||'net');e.data=j;e.status=r.status;throw e}
   return j;
 }
@@ -506,6 +544,7 @@ function drawClosures(){
     :`<div class="group"><div class="empty"><b>Keine Sperrzeiten geplant</b>Trag Urlaub, Brückentage oder Schließtage ein. Diese Tage sind dann online nicht buchbar.</div><button type="button" class="row" id="c-first" style="justify-content:center;color:var(--tint);font-weight:500">Sperrzeit hinzufügen</button></div>`;
   h+='<div class="ghd">Feiertage in Baden-Württemberg</div><div class="group">'+holidays.map(x=>`<label class="row"><span class="main-t"><b>${esc(x.name)}</b><span>${esc(fLongY.format(day(x.date)))}</span></span><span class="trail" style="margin-right:4px">${x.open?'geöffnet':'geschlossen'}</span><input type="checkbox" class="sw" data-hol="${x.date}" ${x.open?'checked':''} aria-label="${esc(x.name)} geöffnet"></label>`).join('')+'</div><p class="gft">Feiertage sind automatisch gesperrt. Schalte einen Feiertag ein, wenn du an dem Tag trotzdem arbeiten möchtest.</p>';
   h+='<div class="ghd">Feste Öffnungszeiten</div><div class="group">'+[1,2,3,4,5,6,0].map(d=>`<div class="row"><span class="main-t"><b>${WDL[d]}</b></span><span class="trail">${hours[d]?hours[d].map(r=>r[0]+':00 – '+r[1]+':00').join('<br>'):'online nicht buchbar'}</span></div>`).join('')+'</div><p class="gft">Online buchbar sind nur diese Zeiten. Samstags-Termine nach Vereinbarung trägst du selbst ein. Für dauerhafte Änderungen melde dich bei deiner Webbetreuung.</p>';
+  h+='<div class="ghd">Konto</div><div class="group"><button type="button" class="row" data-logout><span class="main-t"><b style="color:var(--tint)">Abmelden</b></span></button><button type="button" class="row" data-logout data-all><span class="main-t"><b style="color:var(--tint)">Auf allen Geräten abmelden</b><span>z. B. wenn ein Handy verloren gegangen ist</span></span></button></div><p class="gft">Passwort ändern: abmelden und „Passwort vergessen?“ wählen.</p>';
   box.innerHTML=h;
   $('#c-first')&&($('#c-first').onclick=()=>openClosure());
 }
@@ -572,10 +611,16 @@ async function poll(){
     else{const j=await api('data',{from:iso(today()),to:iso(today())});const prev=S.badge;setBadge(j.inbox);if(S.sec==='inbox'&&prev!=null&&j.inbox!==prev)loadInbox()}
   }catch(e){}
 }
-setInterval(poll,60000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&started)poll()});
 
 /* Start */
-load();
-if(flashMsg)toast(flashMsg);
+function start(){if(started){load();return}started=true;load();setInterval(poll,60000)}
+(async()=>{
+  try{
+    const me=await api('me');
+    if(resetTok)lock('reset');
+    else if(me.auth){$('#app').hidden=false;start()}
+    else lock(me.setup?'setup':'login');
+  }catch(e){lock('login');$('#au-err').textContent='Keine Verbindung. Bitte prüfe das Internet und lade die Seite neu.'}
+})();
 })();

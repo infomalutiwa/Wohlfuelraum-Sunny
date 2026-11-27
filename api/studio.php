@@ -1,8 +1,17 @@
 <?php
 /*
  * Wohlfühlraum Sunny – Schnittstelle für den Studio-Kalender (/studio/).
- * Zugang nur mit dem geheimen Studio-Schlüssel (Header X-Studio-Key), den der Link in jeder Buchungs-Mail enthält.
+ * Zugang nur nach Anmeldung mit Passwort (Sitzungs-Cookie, HttpOnly, Secure, SameSite=Strict).
+ * POST nur von der eigenen Domain und nur als JSON (Schutz gegen fremde Formulare/CSRF).
  *
+ *  Anmeldung (ohne Sitzung erreichbar):
+ *  GET  ?a=me                 angemeldet? Passwort schon eingerichtet?
+ *  POST ?a=login              {password}
+ *  POST ?a=reset_request      schickt einen Link zum Passwort-Festlegen an info@ (Studio-Postfach)
+ *  POST ?a=reset              {token, password} setzt das Passwort, meldet alle Geräte ab
+ *  POST ?a=logout             {all?} abmelden (optional auf allen Geräten)
+ *
+ *  Nur angemeldet:
  *  GET  ?a=data&from=…&to=…   Termine, Sperrzeiten, Feiertage, Öffnungszeiten, Leistungen
  *  GET  ?a=closures           alle kommenden Sperrzeiten und Feiertage (12 Monate)
  *  GET  ?a=inbox              Eingang: neue Online-Buchungen, Absagen, Nachrichten aus dem Kontaktformular
@@ -19,14 +28,59 @@ require __DIR__ . '/_lib.php';
 header('X-Content-Type-Options: nosniff');
 header('X-Robots-Tag: noindex, nofollow');
 
-$key = (string)($_SERVER['HTTP_X_STUDIO_KEY'] ?? '');
-if ($key === '' || !checkSig('studio', $key)) {
-  rateLimit('studio-auth', 30);
-  out(403, ['ok' => false, 'error' => 'key']);
-}
+header('Cache-Control: no-store');
 $a = $_GET['a'] ?? '';
 $post = ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST';
-if ($post) requireOrigin();
+if ($post) {
+  requireOrigin();
+  if (stripos((string)($_SERVER['CONTENT_TYPE'] ?? ''), 'application/json') !== 0) out(415, ['ok' => false, 'error' => 'type']);
+}
+
+/* ---------------- Anmeldung ---------------- */
+if ($a === 'me') out(200, ['ok' => true, 'auth' => studioLoggedIn(), 'setup' => setting('pw') === null]);
+if ($a === 'login' && $post) {
+  if (!rateLimit('login', 8) || !globalLimit('login', 300)) out(429, ['ok' => false, 'error' => 'rate']);
+  $in = jsonInput();
+  $hash = setting('pw');
+  $pw = (string)($in['password'] ?? '');
+  if ($hash === null) out(409, ['ok' => false, 'error' => 'setup']);
+  if ($pw === '' || strlen($pw) > 200 || !password_verify($pw, $hash)) { usleep(800000); out(401, ['ok' => false, 'error' => 'password']); }
+  if (password_needs_rehash($hash, PASSWORD_DEFAULT)) setSetting('pw', password_hash($pw, PASSWORD_DEFAULT));
+  startSession();
+  out(200, ['ok' => true]);
+}
+if ($a === 'reset_request' && $post) {
+  // Antwort immer gleich, damit niemand etwas daraus ablesen kann. Mail geht nur an das Studio-Postfach.
+  if (rateLimit('reset', 3) && globalLimit('reset', 6)) {
+    $link = SITE . '/studio/#reset=' . resetToken(time() + 3600);
+    $first = setting('pw') === null;
+    send(STUDIO_MAIL, $first ? 'Studio-Kalender: Passwort festlegen' : 'Studio-Kalender: Passwort zurücksetzen',
+      "Über diesen Link legst du ein " . ($first ? '' : 'neues ') . "Passwort für den Studio-Kalender fest (1 Stunde gültig):\n$link\n\nDu hast das nicht angefordert? Dann ignoriere diese E-Mail, dein Passwort bleibt unverändert.\n",
+      layout($first ? 'Passwort festlegen' : 'Passwort zurücksetzen',
+        para('Über diesen Button legst du ein ' . ($first ? '' : 'neues ') . 'Passwort für den Studio-Kalender fest. Der Link ist eine Stunde gültig und funktioniert nur einmal.')
+        . '<p style="margin:0 0 14px">' . btn($link, 'Passwort festlegen') . '</p>'
+        . para('Du hast das nicht angefordert? Dann ignoriere diese E-Mail, dein Passwort bleibt unverändert.')));
+  }
+  out(200, ['ok' => true]);
+}
+if ($a === 'reset' && $post) {
+  if (!rateLimit('reset-set', 10)) out(429, ['ok' => false, 'error' => 'rate']);
+  $in = jsonInput();
+  $pw = (string)($in['password'] ?? '');
+  if (!checkResetToken((string)($in['token'] ?? ''))) out(403, ['ok' => false, 'error' => 'token']);
+  if (mb_strlen($pw) < PW_MIN || strlen($pw) > 200) out(422, ['ok' => false, 'error' => 'short']);
+  setSetting('pw', password_hash($pw, PASSWORD_DEFAULT));   // macht den Link ungültig (Token hängt am alten Passwort)
+  endSession(true);
+  startSession();
+  out(200, ['ok' => true]);
+}
+if ($a === 'logout' && $post) {
+  $in = jsonInput();
+  endSession(!empty($in['all']) && studioLoggedIn());
+  out(200, ['ok' => true]);
+}
+
+if (!studioLoggedIn()) out(401, ['ok' => false, 'error' => 'auth']);
 
 const DATE_RE = '/^\d{4}-\d{2}-\d{2}$/';
 function validDate(string $d): bool { return (bool)preg_match(DATE_RE, $d) && checkdate((int)substr($d, 5, 2), (int)substr($d, 8, 2), (int)substr($d, 0, 4)); }

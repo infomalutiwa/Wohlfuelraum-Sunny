@@ -7,6 +7,7 @@ if(!C||!root)return;
 const BLOCK=15,API=C.api||'/api/termine.php';
 const $=(s,r=root)=>r.querySelector(s);
 const st={svcs:[],day:null,slot:null,busy:null};
+const t0=Date.now();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtDur=m=>{const h=Math.floor(m/60),r=m%60;return (h?h+' Std.':'')+(h&&r?' ':'')+(r?r+' Min.':'')};
 const fmtT=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
@@ -144,7 +145,7 @@ root.addEventListener('submit',async e=>{
   const go=$('#bk-go');go.disabled=true;go.textContent='Wird gebucht …';
   try{
     const r=await fetch(API+'?a=book',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({services:st.svcs.map(s=>s.id),date:st.day,start:toMin(st.slot),name,phone,email,note,website:String(f.get('hp_web')||'')})});
+      body:JSON.stringify({services:st.svcs.map(s=>s.id),date:st.day,start:toMin(st.slot),name,phone,email,note,website:String(f.get('hp_web')||''),t:Date.now()-t0})});
     const j=await r.json().catch(()=>({}));
     if(!r.ok||!j.ok)throw new Error(j.error||'x');
     done({id:j.id,name,email:j.mailed?email:'',date:j.date,start:j.start,end:j.end,services:j.services});
@@ -152,7 +153,10 @@ root.addEventListener('submit',async e=>{
     go.disabled=false;update();
     const m={taken:'Diese Uhrzeit wurde gerade von jemand anderem gebucht. Bitte wähle eine andere Zeit.',
       lead:'Diese Uhrzeit ist zu kurzfristig. Bitte wähle eine spätere Zeit.',email:'Bitte prüfe deine E-Mail-Adresse.',
-      rate:'Zu viele Versuche. Bitte ruf uns kurz an: 0173\u00a03098632.'}[x.message];
+      rate:'Zu viele Buchungen von diesem Gerät. Bitte ruf uns kurz an: 0173\u00a03098632.',
+      limit:'Du hast schon 3 offene Termine bei uns. Für weitere Termine ruf uns bitte kurz an: 0173\u00a03098632.',
+      fast:'Bitte prüfe kurz deine Angaben und tippe dann noch einmal auf „Termin verbindlich buchen“.',
+      phone:'Bitte prüfe deine Telefonnummer.',hours:'Diese Zeit ist leider nicht buchbar. Bitte wähle eine andere.'}[x.message];
     err.textContent=m||'Das hat nicht geklappt. Bitte versuche es erneut oder ruf uns an: 0173\u00a03098632.';
     loadRange();renderSlots();
   }
