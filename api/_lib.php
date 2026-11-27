@@ -92,15 +92,38 @@ const SERVICES =
   ['id'=>'ext-ab','cat'=>'Wimpern & Augenbrauen','name'=>"Wimpernverlängerung entfernen",'minutes'=>30,'price'=>25]
 ];
 
-/* Gesetzliche Feiertage Baden-Württemberg: online nicht buchbar */
-function holidays(int $y): array {
+/* Gesetzliche Feiertage Baden-Württemberg: online nicht buchbar (Datum => Name) */
+function holidayMap(int $y): array {
   $a = $y % 19; $b = intdiv($y, 100); $c = $y % 100; $d = intdiv($b, 4); $e = $b % 4; $f = intdiv($b + 8, 25); $g = intdiv($b - $f + 1, 3);
   $hh = (19 * $a + $b - $d - $g + 15) % 30; $i = intdiv($c, 4); $k = $c % 4; $l = (32 + 2 * $e + 2 * $i - $hh - $k) % 7; $m = intdiv($a + 11 * $hh + 22 * $l, 451);
   $easter = mktime(12, 0, 0, intdiv($hh + $l - 7 * $m + 114, 31), (($hh + $l - 7 * $m + 114) % 31) + 1, $y);
   $rel = fn(int $days) => date('Y-m-d', $easter + $days * 86400);
-  return ["$y-01-01", "$y-01-06", $rel(-2), $rel(1), "$y-05-01", $rel(39), $rel(50), $rel(60), "$y-10-03", "$y-11-01", "$y-12-25", "$y-12-26"];
+  return ["$y-01-01" => 'Neujahr', "$y-01-06" => 'Heilige Drei Könige', $rel(-2) => 'Karfreitag', $rel(1) => 'Ostermontag', "$y-05-01" => 'Tag der Arbeit',
+    $rel(39) => 'Christi Himmelfahrt', $rel(50) => 'Pfingstmontag', $rel(60) => 'Fronleichnam', "$y-10-03" => 'Tag der Deutschen Einheit',
+    "$y-11-01" => 'Allerheiligen', "$y-12-25" => '1. Weihnachtstag', "$y-12-26" => '2. Weihnachtstag'];
 }
-function closedDays(): array { $y = (int)date('Y'); return array_values(array_merge(holidays($y), holidays($y + 1))); }
+function holidays(int $y): array { return array_keys(holidayMap($y)); }
+
+/* Sperrzeiten: Feiertage (außer die Inhaberin hat geöffnet) plus Urlaub/Geschlossen aus dem Studio-Kalender.
+   Liefert Datum => ['kind' => feiertag|urlaub|geschlossen, 'label' => Text für die Kundinnen]. */
+const CLOSURE_KINDS = ['urlaub' => 'Urlaub', 'geschlossen' => 'Geschlossen', 'feiertag' => 'Feiertag', 'sonstiges' => 'Geschlossen'];
+function closedInfo(): array {
+  $y = (int)date('Y'); $out = [];
+  foreach ([$y, $y + 1] as $yy) foreach (holidayMap($yy) as $d => $n) $out[$d] = ['kind' => 'feiertag', 'label' => $n];
+  $rows = db()->query("SELECT kind, d_from, d_to, label FROM closures WHERE d_to >= date('now', '-1 day') ORDER BY d_from")->fetchAll();
+  foreach ($rows as $c) if ($c['kind'] === 'offen') unset($out[$c['d_from']]);
+  foreach ($rows as $c) {
+    if ($c['kind'] === 'offen') continue;
+    $label = $c['kind'] === 'feiertag' ? ($c['label'] ?: 'Feiertag') : (CLOSURE_KINDS[$c['kind']] ?? 'Geschlossen');
+    for ($t = strtotime($c['d_from'] . ' 12:00'), $end = strtotime($c['d_to'] . ' 12:00'), $n = 0; $t <= $end && $n < 400; $t += 86400, $n++)
+      $out[date('Y-m-d', $t)] = ['kind' => $c['kind'] === 'sonstiges' ? 'geschlossen' : $c['kind'], 'label' => $label];
+  }
+  $today = date('Y-m-d');
+  $out = array_filter($out, fn($d) => $d >= $today, ARRAY_FILTER_USE_KEY);
+  ksort($out);
+  return $out;
+}
+function closedDays(): array { return array_keys(closedInfo()); }
 
 /* ---------- Antworten, Schutz ---------- */
 function out(int $code, array $data): void {
@@ -152,7 +175,7 @@ function secret(): string {
 function sign(string $what): string { return substr(hash_hmac('sha256', $what, secret()), 0, 32); }
 function checkSig(string $what, string $sig): bool { return hash_equals(sign($what), $sig); }
 function stornoUrl(string $id, string $who): string { return SITE . '/api/termine.php?a=storno&id=' . $id . '&w=' . $who . '&k=' . sign("storno:$who:$id"); }
-function studioUrl(): string { return SITE . '/api/termine.php?a=studio&k=' . sign('studio'); }
+function studioUrl(): string { return SITE . '/studio/#k=' . sign('studio'); }
 
 /* ---------- Datenbank ---------- */
 function db(): PDO {
@@ -167,11 +190,19 @@ function db(): PDO {
       email TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, cancelled_at TEXT);
     CREATE INDEX IF NOT EXISTS bookings_date ON bookings(date);
     CREATE TABLE IF NOT EXISTS slots (d TEXT NOT NULL, m INTEGER NOT NULL, booking_id TEXT NOT NULL REFERENCES bookings(id) ON DELETE CASCADE, PRIMARY KEY (d, m));");
-  // Aufräumen: Termine 90 Tage nach dem Termin löschen (läuft gelegentlich bei normalen Aufrufen mit)
+  $pdo->exec("CREATE TABLE IF NOT EXISTS closures (id TEXT PRIMARY KEY, kind TEXT NOT NULL, d_from TEXT NOT NULL, d_to TEXT NOT NULL, label TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS messages (id TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', email TEXT NOT NULL DEFAULT '', phone TEXT NOT NULL DEFAULT '',
+      topic TEXT NOT NULL DEFAULT '', message TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'neu', created_at TEXT NOT NULL);");
+  $cols = array_column($pdo->query('PRAGMA table_info(bookings)')->fetchAll(), 'name');
+  if (!in_array('source', $cols, true)) $pdo->exec("ALTER TABLE bookings ADD COLUMN source TEXT NOT NULL DEFAULT 'online'");
+  if (!in_array('seen', $cols, true)) $pdo->exec("ALTER TABLE bookings ADD COLUMN seen INTEGER NOT NULL DEFAULT 0");
+  // Aufräumen: Termine 90 Tage nach dem Termin löschen, Nachrichten 90 Tage nach Eingang (läuft gelegentlich bei normalen Aufrufen mit)
   if (mt_rand(1, 10) === 1) {
     $cut = date('Y-m-d', strtotime('-' . KEEP_DAYS . ' days'));
     $pdo->prepare('DELETE FROM bookings WHERE date < ?')->execute([$cut]);
     $pdo->prepare('DELETE FROM slots WHERE d < ?')->execute([date('Y-m-d')]);
+    $pdo->prepare('DELETE FROM messages WHERE created_at < ?')->execute([$cut]);
+    $pdo->prepare('DELETE FROM closures WHERE d_to < ?')->execute([$cut]);
   }
   return $pdo;
 }
@@ -252,3 +283,42 @@ function send(string $to, string $subject, string $text, string $html, ?string $
   return mail($to, enc($subject), $body, implode("\r\n", $headers), '-f' . STUDIO_MAIL);
 }
 function validEmail(string $e): bool { return $e !== '' && filter_var($e, FILTER_VALIDATE_EMAIL) !== false; }
+
+/* ---------- Mails an die Kundin (Online-Buchung und Studio-Kalender nutzen dieselben Vorlagen) ---------- */
+function priceText(array $b): string { return $b['price'] !== null && $b['price'] !== '' ? $b['price'] . ' €' : 'nach Aufwand'; }
+function mailCustomerConfirm(array $b, bool $moved = false): bool {
+  if (!validEmail($b['email'])) return false;
+  $name = $b['name']; $when = longDate($b['date']); $start = (int)$b['start'];
+  $cr = ['Datum' => $when, 'Uhrzeit' => hm($start) . ' – ' . hm((int)$b['end']) . ' Uhr', 'Leistungen' => implode("\n", $b['services']),
+         'Preis' => $b['services'] ? priceText($b) . ($b['price'] !== null ? ', zahlbar vor Ort' : '') : ''];
+  $title = $moved ? 'Dein Termin wurde verschoben' : 'Dein Termin ist gebucht';
+  $intro = $moved ? 'dein Termin hat eine neue Zeit. Hier sind die aktuellen Details:' : 'vielen Dank für deine Buchung. Wir freuen uns auf dich!';
+  $html = layout($title,
+    para(h("Hallo $name,") . '<br>' . h($intro)) . rows($cr)
+    . para('<b>Adresse:</b> ' . h(ADDRESS) . '<br><a href="https://www.google.com/maps/search/?api=1&query=' . rawurlencode(ADDRESS) . '" style="color:#B89355">Route in Google Maps</a>')
+    . para('Kannst du nicht kommen? Dann sag den Termin bitte rechtzeitig ab, damit jemand anderes die Zeit nutzen kann.')
+    . '<p style="margin:0 0 14px">' . btn(stornoUrl($b['id'], 'c'), 'Termin absagen', true) . '</p>'
+    . para('Verschieben oder Fragen: telefonisch oder per WhatsApp unter <a href="tel:' . PHONE_INTL . '" style="color:#B89355">' . h(PHONE) . '</a>.')
+    . para('Den Termin findest du auch als Kalenderdatei im Anhang.<br><br>Herzliche Grüße<br>' . h(STUDIO_NAME)));
+  $text = "Hallo $name,\n\n$intro\n\n" . textRows($cr) . "\nAdresse: " . ADDRESS
+    . "\n\nTermin absagen: " . stornoUrl($b['id'], 'c') . "\nVerschieben oder Fragen: " . PHONE . " (Telefon/WhatsApp)\n\nHerzliche Grüße\n" . STUDIO_NAME . "\n" . SITE . "\n";
+  return send($b['email'], ($moved ? 'Neue Zeit für deinen Termin: ' : 'Dein Termin am ') . $when . ' um ' . hm($start) . ' Uhr', $text, $html, STUDIO_MAIL,
+    ['name' => 'termin-wohlfuehlraum-sunny.ics', 'type' => 'text/calendar; charset=UTF-8; method=PUBLISH', 'data' => ics($b)]);
+}
+function mailCustomerCancelledByStudio(array $b): bool {
+  if (!validEmail($b['email'])) return false;
+  $when = longDate($b['date']) . ', ' . hm((int)$b['start']) . ' Uhr';
+  $r = ['Datum' => longDate($b['date']), 'Uhrzeit' => hm((int)$b['start']) . ' – ' . hm((int)$b['end']) . ' Uhr', 'Leistungen' => implode("\n", $b['services'])];
+  return send($b['email'], 'Dein Termin am ' . $when . ' muss leider ausfallen',
+    "Hallo {$b['name']},\n\nleider müssen wir deinen Termin absagen. Das tut uns leid! Bitte buch dir einen neuen Termin online (" . SITE . "/business/termin.html) oder melde dich unter " . PHONE . ".\n\nHerzliche Grüße\n" . STUDIO_NAME . "\n",
+    layout('Dein Termin muss leider ausfallen', para(h("Hallo {$b['name']},") . '<br>leider müssen wir deinen Termin absagen. Das tut uns leid!') . rows($r)
+      . para('Buch dir gern einen neuen Termin online oder melde dich telefonisch bzw. per WhatsApp unter ' . h(PHONE) . '.')
+      . '<p>' . btn(SITE . '/business/termin.html', 'Neuen Termin buchen') . '</p>' . para('Herzliche Grüße<br>' . h(STUDIO_NAME))), STUDIO_MAIL);
+}
+function cancelBooking(string $id): void {
+  $pdo = db();
+  $pdo->exec('BEGIN IMMEDIATE');
+  $pdo->prepare("UPDATE bookings SET status = 'storniert', cancelled_at = ? WHERE id = ?")->execute([date('c'), $id]);
+  $pdo->prepare('DELETE FROM slots WHERE booking_id = ?')->execute([$id]);
+  $pdo->exec('COMMIT');
+}

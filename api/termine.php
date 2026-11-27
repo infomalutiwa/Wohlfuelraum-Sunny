@@ -3,10 +3,10 @@
  * Wohlfühlraum Sunny – Online-Terminbuchung auf dem eigenen Server (ALL-INKL, SQLite).
  *
  *  GET  ?a=busy&d=YYYY-MM-DD        belegte 15-Minuten-Blöcke eines Tages (ohne Namen)
+ *  GET  ?a=busy&from=…&to=…         belegte Blöcke für einen Zeitraum (max. 60 Tage), für die Tagesübersicht
  *  POST ?a=book                     Termin buchen (JSON), Mails an Studio und Kundin
  *  GET  ?a=storno&id=…&w=c|s&k=…    Storno-Seite (Kundin c / Studio s), POST storniert wirklich
- *  GET  ?a=studio&k=…               Kalender fürs Studio: Termine, stornieren, Zeiten blockieren
- *  POST ?a=block&k=…                Zeit blockieren (Urlaub, Pause, telefonischer Termin)
+ *  GET  ?a=studio&k=…               alter Studio-Link: leitet zum Studio-Kalender /studio/ weiter (Verwaltung über api/studio.php)
  *
  * Links mit k=… sind mit einem geheimen Schlüssel signiert, der nur auf dem Server liegt (api/.store/secret.key).
  */
@@ -20,9 +20,18 @@ $post = ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST';
 
 /* ---------------- Belegte Zeiten ---------------- */
 if ($a === 'busy') {
+  if (!rateLimit('busy', 600)) out(429, ['ok' => false, 'error' => 'rate']);
+  $from = (string)($_GET['from'] ?? ''); $to = (string)($_GET['to'] ?? '');
+  if ($from !== '' || $to !== '') {
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $from) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $to) || $to < $from
+        || strtotime($to) - strtotime($from) > 60 * 86400) out(422, ['ok' => false]);
+    $s = db()->prepare('SELECT d, m FROM slots WHERE d >= ? AND d <= ? ORDER BY d, m'); $s->execute([$from, $to]);
+    $map = [];
+    foreach ($s->fetchAll() as $r) $map[$r['d']][] = (int)$r['m'];
+    out(200, ['ok' => true, 'busy' => (object)$map]);
+  }
   $d = (string)($_GET['d'] ?? '');
   if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)) out(422, ['ok' => false]);
-  if (!rateLimit('busy', 600)) out(429, ['ok' => false, 'error' => 'rate']);
   $s = db()->prepare('SELECT m FROM slots WHERE d = ? ORDER BY m'); $s->execute([$d]);
   out(200, ['ok' => true, 'busy' => array_map('intval', $s->fetchAll(PDO::FETCH_COLUMN))]);
 }
@@ -98,21 +107,7 @@ if ($a === 'book') {
   if (!$sentStudio) @file_put_contents(storeDir() . '/mail-fehler.log', date('c') . " Studio-Mail fehlgeschlagen: $id\n", FILE_APPEND);
 
   // Bestätigung an die Kundin
-  $sentCustomer = false;
-  if (validEmail($email)) {
-    $cr = ['Datum' => $when, 'Uhrzeit' => $time, 'Leistungen' => implode("\n", $names), 'Preis' => $priceTxt . ($price !== null ? ', zahlbar vor Ort' : '')];
-    $html = layout('Dein Termin ist gebucht',
-      para(h("Hallo $name,") . '<br>vielen Dank für deine Buchung. Wir freuen uns auf dich!') . rows($cr)
-      . para('<b>Adresse:</b> ' . h(ADDRESS) . '<br><a href="https://www.google.com/maps/search/?api=1&query=' . rawurlencode(ADDRESS) . '" style="color:#B89355">Route in Google Maps</a>')
-      . para('Kannst du nicht kommen? Dann sag den Termin bitte rechtzeitig ab, damit jemand anderes die Zeit nutzen kann.')
-      . '<p style="margin:0 0 14px">' . btn(stornoUrl($id, 'c'), 'Termin absagen', true) . '</p>'
-      . para('Verschieben oder Fragen: telefonisch oder per WhatsApp unter <a href="tel:' . PHONE_INTL . '" style="color:#B89355">' . h(PHONE) . '</a>.')
-      . para('Den Termin findest du auch als Kalenderdatei im Anhang.<br><br>Herzliche Grüße<br>' . h(STUDIO_NAME)));
-    $text = "Hallo $name,\n\nvielen Dank für deine Buchung. Wir freuen uns auf dich!\n\n" . textRows($cr) . "\nAdresse: " . ADDRESS
-      . "\n\nTermin absagen: " . stornoUrl($id, 'c') . "\nVerschieben oder Fragen: " . PHONE . " (Telefon/WhatsApp)\n\nHerzliche Grüße\n" . STUDIO_NAME . "\n" . SITE . "\n";
-    $sentCustomer = send($email, 'Dein Termin am ' . $when . ' um ' . hm($start) . ' Uhr', $text, $html, STUDIO_MAIL,
-      ['name' => 'termin-wohlfuehlraum-sunny.ics', 'type' => 'text/calendar; charset=UTF-8; method=PUBLISH', 'data' => ics($b)]);
-  }
+  $sentCustomer = mailCustomerConfirm($b);
   out(200, ['ok' => true, 'id' => $id, 'date' => $date, 'start' => $start, 'end' => $end, 'services' => $names, 'mailed' => $sentCustomer]);
 }
 
@@ -164,91 +159,31 @@ if ($a === 'storno') {
       . '<form method="post"><button class="btn red" type="submit">' . ($isBlock ? 'Zeit freigeben' : ($who === 's' ? 'Termin stornieren' : 'Ja, Termin absagen')) . '</button></form></div>' . $back);
   }
   requireOrigin();
-  $pdo = db();
-  $pdo->exec('BEGIN IMMEDIATE');
-  $pdo->prepare("UPDATE bookings SET status = 'storniert', cancelled_at = ? WHERE id = ?")->execute([date('c'), $id]);
-  $pdo->prepare('DELETE FROM slots WHERE booking_id = ?')->execute([$id]);
-  $pdo->exec('COMMIT');
+  cancelBooking($id);
 
   if (!$isBlock) {
     $when = longDate($b['date']) . ', ' . hm((int)$b['start']) . ' Uhr';
     $r = ['Datum' => longDate($b['date']), 'Uhrzeit' => hm((int)$b['start']) . ' – ' . hm((int)$b['end']) . ' Uhr', 'Leistungen' => implode("\n", $b['services']), 'Name' => $b['name'], 'Telefon' => $b['phone'], 'E-Mail' => $b['email']];
     if ($who === 'c') {
+      db()->prepare('UPDATE bookings SET seen = 0 WHERE id = ?')->execute([$id]);   // erscheint im Studio-Kalender unter „Eingang“
       send(STUDIO_MAIL, 'Abgesagt: ' . $when . ' – ' . $b['name'], "Die Kundin hat den Termin online abgesagt. Die Zeit ist wieder frei.\n\n" . textRows($r),
         layout('Termin abgesagt', para('Die Kundin hat den Termin online abgesagt. Die Zeit ist wieder frei buchbar.') . rows($r) . '<p>' . btn(studioUrl(), 'Kalender öffnen') . '</p>'));
       if (validEmail($b['email'])) send($b['email'], 'Dein Termin am ' . $when . ' ist abgesagt',
         "Hallo {$b['name']},\n\ndein Termin ist abgesagt. Schade, dass es nicht klappt. Einen neuen Termin kannst du jederzeit online buchen: " . SITE . "/business/termin.html\n\nHerzliche Grüße\n" . STUDIO_NAME . "\n",
         layout('Dein Termin ist abgesagt', para(h("Hallo {$b['name']},") . '<br>dein Termin ist abgesagt. Schade, dass es nicht klappt.') . rows(['Datum' => $r['Datum'], 'Uhrzeit' => $r['Uhrzeit'], 'Leistungen' => $r['Leistungen']])
           . '<p>' . btn(SITE . '/business/termin.html', 'Neuen Termin buchen') . '</p>' . para('Herzliche Grüße<br>' . h(STUDIO_NAME))), STUDIO_MAIL);
-    } elseif (validEmail($b['email'])) {
-      send($b['email'], 'Dein Termin am ' . $when . ' muss leider ausfallen',
-        "Hallo {$b['name']},\n\nleider müssen wir deinen Termin absagen. Das tut uns leid! Bitte buch dir einen neuen Termin online (" . SITE . "/business/termin.html) oder melde dich unter " . PHONE . ".\n\nHerzliche Grüße\n" . STUDIO_NAME . "\n",
-        layout('Dein Termin muss leider ausfallen', para(h("Hallo {$b['name']},") . '<br>leider müssen wir deinen Termin absagen. Das tut uns leid!') . rows(['Datum' => $r['Datum'], 'Uhrzeit' => $r['Uhrzeit'], 'Leistungen' => $r['Leistungen']])
-          . para('Buch dir gern einen neuen Termin online oder melde dich telefonisch bzw. per WhatsApp unter ' . h(PHONE) . '.')
-          . '<p>' . btn(SITE . '/business/termin.html', 'Neuen Termin buchen') . '</p>' . para('Herzliche Grüße<br>' . h(STUDIO_NAME))), STUDIO_MAIL);
+    } else {
+      mailCustomerCancelledByStudio($b);
     }
   }
   if ($who === 's') { header('Location: ' . studioUrl() . '&msg=' . ($isBlock ? 'frei' : 'storniert'), true, 303); exit; }
   page('Termin abgesagt', '<div class="card ok"><h1>Dein Termin ist abgesagt</h1>' . details($b) . '<p>Danke, dass du Bescheid gegeben hast. ' . (validEmail($b['email']) ? 'Eine Bestätigung ist per E-Mail unterwegs.' : '') . '</p><p><a class="btn" href="/business/termin.html">Neuen Termin buchen</a></p></div>');
 }
 
-/* ---------------- Studio: Kalender und Zeiten blockieren ---------------- */
-if ($a === 'studio' || $a === 'block') {
+/* ---------------- Alter Studio-Link: weiter zum neuen Studio-Kalender ---------------- */
+if ($a === 'studio') {
   if (!checkSig('studio', (string)($_GET['k'] ?? ''))) page('Link ungültig', '<div class="card err"><h1>Dieser Link ist nicht gültig</h1><p>Bitte den Link aus einer aktuellen Buchungs-E-Mail verwenden.</p></div>');
-  $self = studioUrl();
-  $msg = '';
-  if ($a === 'block' && $post) {
-    requireOrigin();
-    $d = (string)($_POST['d'] ?? '');
-    $from = preg_match('/^(\d{1,2}):(\d{2})$/', (string)($_POST['from'] ?? ''), $x) ? (int)$x[1] * 60 + (int)$x[2] : -1;
-    $to = preg_match('/^(\d{1,2}):(\d{2})$/', (string)($_POST['to'] ?? ''), $y) ? (int)$y[1] * 60 + (int)$y[2] : -1;
-    $note = line((string)($_POST['note'] ?? ''), 80);
-    $allDay = !empty($_POST['all']);
-    if ($allDay) { $from = 6 * 60; $to = 22 * 60; }
-    $from = intdiv(max($from, 0), BLOCK) * BLOCK; $to = (int)ceil($to / BLOCK) * BLOCK;
-    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) || $from < 0 || $to <= $from || $to > 24 * 60) {
-      $msg = '<div class="card err"><p>Bitte Datum sowie Von- und Bis-Zeit angeben.</p></div>';
-    } else {
-      $pdo = db(); $id = bin2hex(random_bytes(8));
-      $pdo->exec('BEGIN IMMEDIATE');
-      $pdo->prepare('INSERT INTO bookings (id, kind, status, date, start, end, note, created_at) VALUES (?,?,?,?,?,?,?,?)')->execute([$id, 'block', 'gebucht', $d, $from, $to, $note, date('c')]);
-      $taken = $pdo->prepare('SELECT m FROM slots WHERE d = ? AND m >= ? AND m < ?'); $taken->execute([$d, $from, $to]);
-      $busy = array_flip(array_map('intval', $taken->fetchAll(PDO::FETCH_COLUMN)));
-      $ins = $pdo->prepare('INSERT INTO slots (d, m, booking_id) VALUES (?,?,?)');
-      $n = 0; for ($m = $from; $m < $to; $m += BLOCK) if (!isset($busy[$m])) { $ins->execute([$d, $m, $id]); $n++; }
-      if ($n === 0) { $pdo->exec('ROLLBACK'); $msg = '<div class="card err"><p>Diese Zeit ist bereits komplett belegt.</p></div>'; }
-      else { $pdo->exec('COMMIT'); header('Location: ' . $self . '&msg=blockiert', true, 303); exit; }
-    }
-  }
-  $flash = ['storniert' => 'Der Termin ist storniert, die Zeit ist wieder frei.', 'frei' => 'Die Zeit ist wieder freigegeben.', 'blockiert' => 'Die Zeit ist blockiert und online nicht mehr buchbar.'][$_GET['msg'] ?? ''] ?? '';
-  if ($flash) $msg = '<div class="card ok"><p style="margin:0">' . h($flash) . '</p></div>';
-
-  $s = db()->prepare("SELECT * FROM bookings WHERE status = 'gebucht' AND date >= ? ORDER BY date, start");
-  $s->execute([date('Y-m-d')]);
-  $byDay = [];
-  foreach ($s->fetchAll() as $b) { $b['services'] = json_decode($b['services'], true) ?: []; $byDay[$b['date']][] = $b; }
-  $list = '';
-  foreach ($byDay as $d => $items) {
-    $list .= '<div class="day"><h2>' . h(longDate($d)) . '</h2>';
-    foreach ($items as $b) {
-      $isBlock = $b['kind'] === 'block';
-      $tel = preg_replace('/[^\d+]/', '', $b['phone']);
-      $list .= '<div class="row"><div><b>' . h(hm((int)$b['start']) . ' – ' . hm((int)$b['end'])) . ($isBlock ? '<span class="tag">blockiert</span>' : '') . '</b>'
-        . ($isBlock ? h($b['note'] ?: 'Blockierte Zeit')
-          : h($b['name']) . ' · ' . h(implode(', ', $b['services'])) . '<br><span class="mut">' . ($tel ? '<a href="tel:' . h($tel) . '">' . h($b['phone']) . '</a>' : '') . ($b['email'] ? ' · <a href="mailto:' . h($b['email']) . '">' . h($b['email']) . '</a>' : '') . ($b['note'] ? ' · ' . h($b['note']) : '') . '</span>')
-        . '</div><a class="btn line sm" href="' . h(stornoUrl($b['id'], 's')) . '">' . ($isBlock ? 'Freigeben' : 'Stornieren') . '</a></div>';
-    }
-    $list .= '</div>';
-  }
-  if (!$list) $list = '<p class="mut">Keine kommenden Termine.</p>';
-  page('Kalender', $msg
-    . '<div class="card"><h1>Kalender</h1><p class="mut">Alle kommenden Online-Termine und blockierten Zeiten. Diesen Link nicht weitergeben, am besten als Lesezeichen speichern.</p>' . $list . '</div>'
-    . '<div class="card"><h2>Zeit blockieren</h2><p class="mut">Für Urlaub, Pausen oder telefonisch vereinbarte Termine. Die Zeit ist danach online nicht mehr buchbar.</p>'
-    . '<form method="post" action="' . h($self . '&a=block') . '"><div class="grid"><label>Datum<input type="date" name="d" required min="' . date('Y-m-d') . '"></label>'
-    . '<label>Von<input type="time" name="from" step="900" value="08:00"></label><label>Bis<input type="time" name="to" step="900" value="13:00"></label></div>'
-    . '<label style="margin-bottom:10px">Notiz (z. B. Urlaub, Frau Müller telefonisch)<input type="text" name="note" maxlength="80"></label>'
-    . '<label style="display:flex;gap:8px;align-items:center;margin-bottom:14px"><input type="checkbox" name="all" value="1" style="width:auto"> Ganzen Tag blockieren</label>'
-    . '<button class="btn" type="submit">Zeit blockieren</button></form></div>');
+  header('Location: ' . studioUrl(), true, 302); exit;
 }
 
 out(400, ['ok' => false, 'error' => 'action']);

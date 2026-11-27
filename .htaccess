@@ -37,4 +37,5 @@ ErrorDocument 404 /404.html
   AddType video/webm .webm
   AddType video/mp4 .mp4
   AddType text/calendar .ics
+  AddType application/manifest+json .webmanifest
 </IfModule>

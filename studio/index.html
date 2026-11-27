@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Studio-Kalender · Wohlfühlraum Sunny</title>
+<meta name="theme-color" content="#F4F1EC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C1A18" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sunny Studio">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="/img/favicon.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/dmserif.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="studio.css?v=1">
+</head>
+<body>
+<div class="app" id="app" aria-busy="true">
+  <aside class="side" aria-label="Navigation">
+    <div class="side-brand"><img src="/img/logo-word.png" alt="Wohlfühlraum Sunny" width="520" height="131"></div>
+    <nav class="nav" id="nav">
+      <button type="button" class="nav-i" data-sec="cal" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span>Kalender</span></button>
+      <button type="button" class="nav-i" data-sec="inbox"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13.5 6.3 6.2A2 2 0 0 1 8.2 5h7.6a2 2 0 0 1 1.9 1.2L20 13.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 13.5h4.5l1.2 2.2h4.6l1.2-2.2H20"/></svg><span>Eingang</span><b class="badge" id="badge" hidden></b></button>
+      <button type="button" class="nav-i" data-sec="closures"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m6 6 12 12"/></svg><span>Sperrzeiten</span></button>
+    </nav>
+    <div class="mini" id="mini" aria-label="Monatsübersicht"></div>
+    <div class="legend" aria-label="Legende">
+      <span><i class="dot online"></i>Online gebucht</span>
+      <span><i class="dot studio"></i>Selbst eingetragen</span>
+      <span><i class="dot block"></i>Blockiert</span>
+      <span><i class="dot closed"></i>Geschlossen / Feiertag</span>
+      <span><i class="dot vac"></i>Urlaub</span>
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+    <section class="sec" id="sec-cal" aria-label="Kalender">
+      <header class="bar">
+        <h1 class="ttl" id="title">Kalender</h1>
+        <div class="bar-r">
+          <div class="seg" role="tablist" aria-label="Ansicht" id="views">
+            <button type="button" role="tab" data-view="day">Tag</button>
+            <button type="button" role="tab" data-view="week">Woche</button>
+            <button type="button" role="tab" data-view="month">Monat</button>
+          </div>
+          <div class="stepper">
+            <button type="button" class="ic" id="prev" aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg></button>
+            <button type="button" class="today" id="today">Heute</button>
+            <button type="button" class="ic" id="next" aria-label="Weiter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+          </div>
+          <button type="button" class="add" id="add" aria-label="Neuer Termin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Neu</span></button>
+        </div>
+      </header>
+      <div class="view" id="view"></div>
+    </section>
+
+    <section class="sec" id="sec-inbox" hidden aria-label="Eingang">
+      <header class="bar"><h1 class="ttl">Eingang</h1><div class="bar-r"><button type="button" class="txt" id="allseen">Alle als gesehen markieren</button></div></header>
+      <div class="pad" id="inbox"></div>
+    </section>
+
+    <section class="sec" id="sec-closures" hidden aria-label="Sperrzeiten">
+      <header class="bar"><h1 class="ttl">Sperrzeiten</h1><div class="bar-r"><button type="button" class="add" id="addclose"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Sperrzeit</span></button></div></header>
+      <div class="pad" id="closures"></div>
+    </section>
+  </main>
+
+  <nav class="tabbar" id="tabbar" aria-label="Bereiche">
+    <button type="button" data-sec="cal" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Kalender</button>
+    <button type="button" data-sec="inbox"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13.5 6.3 6.2A2 2 0 0 1 8.2 5h7.6a2 2 0 0 1 1.9 1.2L20 13.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 13.5h4.5l1.2 2.2h4.6l1.2-2.2H20"/></svg>Eingang<b class="badge" id="badge2" hidden></b></button>
+    <button type="button" data-sec="closures"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m6 6 12 12"/></svg>Sperrzeiten</button>
+  </nav>
+</div>
+
+<div class="locked" id="locked" hidden>
+  <img src="/img/logo-word.png" alt="Wohlfühlraum Sunny" width="260">
+  <h1>Studio-Kalender</h1>
+  <p>Bitte öffne den Kalender über den Link „Kalender öffnen“ in einer Buchungs-E-Mail. Danach merkt sich dieses Gerät den Zugang.</p>
+</div>
+
+<dialog class="sheet" id="sheet" aria-labelledby="sheet-t"><form method="dialog" class="sheet-in" id="sheet-in" novalidate></form></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="studio.js?v=1" defer></script>
+</body>
+</html>

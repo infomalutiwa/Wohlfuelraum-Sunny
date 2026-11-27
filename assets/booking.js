@@ -25,11 +25,48 @@ const cats=[...new Set(C.services.map(s=>s.cat||''))];
 sv.innerHTML=cats.length>1?cats.map((c,i)=>`<details class="svc-cat"${i?'':' open'}><summary>${esc(c)}<span class="svc-n" hidden></span></summary><div class="chips">${C.services.filter(s=>(s.cat||'')===c).map(chip).join('')}</div></details>`).join(''):C.services.map(chip).join('');
 const marks=()=>sv.querySelectorAll('.svc-cat').forEach(d=>{const n=d.querySelectorAll('.chip[aria-pressed=true]').length,b=d.querySelector('.svc-n');b.hidden=!n;b.textContent=n+' gewählt'});
 
-/* Tage */
+/* Tage: zeigt pro Tag, ob noch etwas frei ist (Belegung für den ganzen Zeitraum in einer Anfrage) */
 const dy=$('#bk-days'),today=new Date();today.setHours(0,0,0,0);
 const days=[...Array(C.daysAhead||28)].map((_,i)=>{const d=new Date(today);d.setDate(d.getDate()+i);return d});
-const closed=new Set(C.closed||[]);
-dy.innerHTML=days.map(d=>{const open=!!C.hours[d.getDay()]&&!closed.has(iso(d));return `<button type="button" class="day" data-d="${iso(d)}" aria-pressed="false" ${open?'':'disabled'} aria-label="${d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})}${open?'':', geschlossen'}"><span>${d.toLocaleDateString('de-DE',{weekday:'short'})}</span><b>${d.getDate()}</b><span>${d.toLocaleDateString('de-DE',{month:'short'})}</span></button>`}).join('');
+const info=C.closedInfo||{},closed=new Set([...(C.closed||[]),...Object.keys(info)]);
+const short=x=>x.kind==='urlaub'?'Urlaub':x.kind==='feiertag'?'Feiertag':'zu';
+let range=null;
+function freeCount(dateStr,minutes){
+  const d=new Date(dateStr+'T00:00'),h=C.hours[d.getDay()];if(!h||!range)return null;
+  const busy=new Set(range[dateStr]||[]),need=roundUp(minutes),earliest=Date.now()+(C.minLead??60)*60000;let n=0;
+  for(const r of h)for(let m=r[0]*60;m+need<=r[1]*60;m+=C.slotStep){
+    const t=new Date(d);t.setMinutes(m);if(t.getTime()<earliest)continue;
+    let free=true;for(let b=m;b<m+need;b+=BLOCK)if(busy.has(b)){free=false;break}
+    if(free)n++;
+  }
+  return n;
+}
+function renderDays(){
+  const need=st.svcs.length?total():C.slotStep||30;
+  dy.innerHTML=days.map(d=>{
+    const ds=iso(d),ci=info[ds],open=!!C.hours[d.getDay()]&&!closed.has(ds),n=open?freeCount(ds,need):0;
+    const full=open&&n===0,few=open&&n!=null&&n>0&&n<=2;
+    const stt=!C.hours[d.getDay()]?'':ci?short(ci):full?'belegt':few?'wenig frei':n?'frei':'';
+    const cls=ci?(ci.kind==='urlaub'?' vac':' shut'):full?' full':few?' few':n?' free':'';
+    const lbl=d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})+(ci?', '+ci.label:!open?', geschlossen':full?', ausgebucht':few?', nur noch wenige Zeiten frei':n?', freie Zeiten':'');
+    return `<button type="button" class="day${cls}" data-d="${ds}" aria-pressed="${st.day===ds}" ${open&&!full?'':'disabled'} aria-label="${esc(lbl)}" title="${esc(ci?ci.label:'')}"><span>${d.toLocaleDateString('de-DE',{weekday:'short'})}</span><b>${d.getDate()}</b><span>${d.toLocaleDateString('de-DE',{month:'short'})}</span><i class="st">${esc(stt)}</i></button>`}).join('');
+  if(st.day&&dy.querySelector(`[data-d="${st.day}"]:disabled`)){st.day=null}
+}
+/* Hinweis auf Urlaub/Schließtage im buchbaren Zeitraum */
+(function(){
+  const box=document.createElement('p');box.className='bk-closed';
+  const runs=[];let cur=null;
+  for(const d of days){const ds=iso(d),ci=info[ds];
+    if(ci&&ci.kind!=='feiertag'){if(cur&&cur.label===ci.label&&(d-cur.end)<=86400000*1.5)cur.end=d;else runs.push(cur={label:ci.label,start:d,end:d})}}
+  if(!runs.length)return;
+  const f=d=>d.toLocaleDateString('de-DE',{day:'numeric',month:'long'});
+  box.textContent=runs.map(r=>(r.label==='Urlaub'?'Urlaub':'Geschlossen')+(+r.start===+r.end?' am '+f(r.start):' vom '+f(r.start)+' bis '+f(r.end))).join(' · ')+'. An diesen Tagen ist keine Online-Buchung möglich.';
+  dy.before(box);
+})();
+async function loadRange(){
+  try{const r=await fetch(`${API}?a=busy&from=${iso(days[0])}&to=${iso(days[days.length-1])}`,{cache:'no-store'});const j=await r.json();if(r.ok&&j.ok){range=j.busy;renderDays()}}catch(e){}
+}
+renderDays();loadRange();
 
 /* Belegte Blöcke eines Tages laden */
 async function busyFor(dateStr){
@@ -72,7 +109,7 @@ function update(){
 root.addEventListener('click',e=>{
   const c=e.target.closest('.chip'),d=e.target.closest('.day'),t=e.target.closest('.slot');
   if(c){const s=C.services.find(x=>x.id===c.dataset.id),on=st.svcs.includes(s);
-    st.svcs=on?st.svcs.filter(x=>x!==s):[...st.svcs,s];c.setAttribute('aria-pressed',!on);marks();renderSlots()}
+    st.svcs=on?st.svcs.filter(x=>x!==s):[...st.svcs,s];c.setAttribute('aria-pressed',!on);marks();renderDays();renderSlots()}
   if(d){st.day=d.dataset.d;dy.querySelectorAll('.day').forEach(x=>x.setAttribute('aria-pressed',x===d));renderSlots()}
   if(t){st.slot=t.dataset.t;$('#bk-slots').querySelectorAll('.slot').forEach(x=>x.setAttribute('aria-pressed',x===t));update()}
 });
@@ -117,7 +154,7 @@ root.addEventListener('submit',async e=>{
       lead:'Diese Uhrzeit ist zu kurzfristig. Bitte wähle eine spätere Zeit.',email:'Bitte prüfe deine E-Mail-Adresse.',
       rate:'Zu viele Versuche. Bitte ruf uns kurz an: 0173\u00a03098632.'}[x.message];
     err.textContent=m||'Das hat nicht geklappt. Bitte versuche es erneut oder ruf uns an: 0173\u00a03098632.';
-    renderSlots();
+    loadRange();renderSlots();
   }
 });
 update();renderSlots();
