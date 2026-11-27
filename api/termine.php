@@ -55,7 +55,7 @@ if ($a === 'book') {
   $email = line((string)($in['email'] ?? ''), 120);
   $note = clean((string)($in['note'] ?? ''), 300);
 
-  if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || !strtotime($date)) out(422, ['ok' => false, 'error' => 'date']);
+  if (!validDate($date)) out(422, ['ok' => false, 'error' => 'date']);
   if ($name === '') out(422, ['ok' => false, 'error' => 'name']);
   $digits = preg_replace('/\D/', '', $phone);
   if (strlen($digits) < 6 || strlen($digits) > 16) out(422, ['ok' => false, 'error' => 'phone']);
@@ -85,7 +85,13 @@ if ($a === 'book') {
   $same = 0;
   foreach ($open->fetchAll() as $o) if (substr(preg_replace('/\D/', '', $o['phone']), -8) === $tail || ($email !== '' && strcasecmp($o['email'], $email) === 0)) $same++;
   if ($same >= 3) out(422, ['ok' => false, 'error' => 'limit']);
-  if (!globalLimit('book-all', 40, 'Y-m-d')) out(429, ['ok' => false, 'error' => 'rate']);
+  if (!globalLimit('book-all', 40, 'Y-m-d')) {
+    // Ungewöhnlich viele Buchungen an einem Tag: Studio einmal per Mail warnen
+    if (globalLimit('book-alarm', 1, 'Y-m-d')) send(STUDIO_MAIL, 'Achtung: ungewöhnlich viele Online-Buchungen heute',
+      "Heute sind schon 40 Online-Buchungen eingegangen. Weitere Online-Buchungen sind bis morgen gesperrt.\nBitte im Studio-Kalender prüfen, ob es echte Buchungen sind: " . studioUrl() . "\n",
+      layout('Ungewöhnlich viele Buchungen', para('Heute sind schon 40 Online-Buchungen eingegangen. Weitere Online-Buchungen sind bis morgen gesperrt. Bitte prüfe im Kalender, ob es echte Buchungen sind, und storniere falsche.') . '<p>' . btn(studioUrl(), 'Kalender öffnen') . '</p>'));
+    out(429, ['ok' => false, 'error' => 'rate']);
+  }
 
   $id = bin2hex(random_bytes(8));
   $names = array_column($chosen, 'name');
@@ -119,7 +125,8 @@ if ($a === 'book') {
   if (!$sentStudio) @file_put_contents(storeDir() . '/mail-fehler.log', date('c') . " Studio-Mail fehlgeschlagen: $id\n", FILE_APPEND);
 
   // Bestätigung an die Kundin
-  $sentCustomer = mailCustomerConfirm($b);
+  // Höchstens 3 Bestätigungen pro E-Mail-Adresse und Tag (niemand soll fremde Postfächer mit unseren Mails fluten können)
+  $sentCustomer = validEmail($email) && globalLimit('confirm-' . strtolower($email), 3, 'Y-m-d') ? mailCustomerConfirm($b) : false;
   out(200, ['ok' => true, 'id' => $id, 'date' => $date, 'start' => $start, 'end' => $end, 'services' => $names, 'mailed' => $sentCustomer]);
 }
 
@@ -159,7 +166,7 @@ if ($a === 'storno') {
   $k = (string)($_GET['k'] ?? '');
   $b = $id ? booking($id) : null;
   if (!$b || !checkSig("storno:$who:$id", $k)) page('Link ungültig', '<div class="card err"><h1>Dieser Link ist nicht gültig</h1><p>Der Termin wurde nicht gefunden oder ist bereits abgelaufen. Bitte melde dich telefonisch oder per WhatsApp: <a href="tel:' . PHONE_INTL . '">' . h(PHONE) . '</a>.</p></div>');
-  $back = $who === 's' ? '<p><a class="btn line" href="' . h(studioUrl()) . '">Zum Kalender</a></p>' : '<p><a class="btn line" href="/business/">Zur Website</a></p>';
+  $back = '<p><a class="btn line" href="/business/">Zur Website</a></p>';
   $isBlock = $b['kind'] === 'block';
   if ($b['status'] === 'storniert') page('Bereits storniert', '<div class="card ok"><h1>' . ($isBlock ? 'Zeit ist wieder frei' : 'Dieser Termin ist bereits storniert') . '</h1>' . details($b) . $back . '</div>');
   $startTs = strtotime($b['date'] . ' 00:00') + (int)$b['start'] * 60;
@@ -189,7 +196,6 @@ if ($a === 'storno') {
       mailCustomerCancelledByStudio($b);
     }
   }
-  if ($who === 's') { header('Location: ' . studioUrl() . '&msg=' . ($isBlock ? 'frei' : 'storniert'), true, 303); exit; }
   page('Termin abgesagt', '<div class="card ok"><h1>Dein Termin ist abgesagt</h1>' . details($b) . '<p>Danke, dass du Bescheid gegeben hast. ' . (validEmail($b['email']) ? 'Eine Bestätigung ist per E-Mail unterwegs.' : '') . '</p><p><a class="btn" href="/business/termin.html">Neuen Termin buchen</a></p></div>');
 }
 

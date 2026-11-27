@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Per FTPS hochladen
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@8e83cea8672e3fbcbb9fdafff34debf6ae4c5f65 # v4.3.5
         with:
           server: w022499d.kasserver.com
           protocol: ftps

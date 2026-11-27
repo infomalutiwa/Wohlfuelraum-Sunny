@@ -39,7 +39,8 @@ if ($post) {
 /* ---------------- Anmeldung ---------------- */
 if ($a === 'me') out(200, ['ok' => true, 'auth' => studioLoggedIn(), 'setup' => setting('pw') === null]);
 if ($a === 'login' && $post) {
-  if (!rateLimit('login', 8) || !globalLimit('login', 300)) out(429, ['ok' => false, 'error' => 'rate']);
+  // Nur pro Absender begrenzen. Eine globale Sperre würde es Angreifern erlauben, Stana absichtlich auszusperren.
+  if (!rateLimit('login', 8)) out(429, ['ok' => false, 'error' => 'rate']);
   $in = jsonInput();
   $hash = setting('pw');
   $pw = (string)($in['password'] ?? '');
@@ -51,7 +52,7 @@ if ($a === 'login' && $post) {
 }
 if ($a === 'reset_request' && $post) {
   // Antwort immer gleich, damit niemand etwas daraus ablesen kann. Mail geht nur an das Studio-Postfach.
-  if (rateLimit('reset', 3) && globalLimit('reset', 6)) {
+  if (rateLimit('reset', 3) && globalLimit('reset', 20)) {
     $link = SITE . '/studio/#reset=' . resetToken(time() + 3600);
     $first = setting('pw') === null;
     send(STUDIO_MAIL, $first ? 'Studio-Kalender: Passwort festlegen' : 'Studio-Kalender: Passwort zurücksetzen',
@@ -82,8 +83,6 @@ if ($a === 'logout' && $post) {
 
 if (!studioLoggedIn()) out(401, ['ok' => false, 'error' => 'auth']);
 
-const DATE_RE = '/^\d{4}-\d{2}-\d{2}$/';
-function validDate(string $d): bool { return (bool)preg_match(DATE_RE, $d) && checkdate((int)substr($d, 5, 2), (int)substr($d, 8, 2), (int)substr($d, 0, 4)); }
 function ev(array $b): array {
   $sv = is_array($b['services']) ? $b['services'] : (json_decode($b['services'], true) ?: []);
   return ['id' => $b['id'], 'kind' => $b['kind'], 'source' => $b['source'] ?? 'online', 'status' => $b['status'], 'date' => $b['date'],

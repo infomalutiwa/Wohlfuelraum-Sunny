@@ -142,7 +142,7 @@ function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES,
 function storeDir(): string {
   $d = __DIR__ . '/.store';
   if (!is_dir($d)) @mkdir($d, 0700, true);
-  if (!file_exists($d . '/.htaccess')) @file_put_contents($d . '/.htaccess', "Require all denied\n");
+  if (!file_exists($d . '/.htaccess')) @file_put_contents($d . '/.htaccess', "Require all denied\n");   // zusätzlich gesperrt durch api/.htaccess
   return $d;
 }
 function requireOrigin(): void {
@@ -150,20 +150,37 @@ function requireOrigin(): void {
   $host = parse_url($origin, PHP_URL_HOST) ?: '';
   if (!in_array($host, ALLOWED_HOSTS, true)) out(403, ['ok' => false, 'error' => 'origin']);
 }
+/* Echtes Kalenderdatum (2026-11-31 o. ä. wird abgelehnt, nicht in den Folgemonat verschoben) */
+function validDate(string $d): bool {
+  return (bool)preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) && checkdate((int)substr($d, 5, 2), (int)substr($d, 8, 2), (int)substr($d, 0, 4));
+}
+/* Absender für Limits: IPv4 ganz, IPv6 als /64-Netz (sonst könnte man pro Anfrage eine neue Adresse nehmen) */
+function clientKey(): string {
+  $ip = (string)($_SERVER['REMOTE_ADDR'] ?? '');
+  $bin = @inet_pton($ip);
+  return ($bin !== false && strlen($bin) === 16) ? bin2hex(substr($bin, 0, 8)) : $ip;
+}
+/* Zähler mit Dateisperre, damit gleichzeitige Anfragen das Limit nicht überspringen */
+function bump(string $file, int $max): bool {
+  $h = @fopen($file, 'c+');
+  if (!$h) return true;
+  flock($h, LOCK_EX);
+  $n = (int)stream_get_contents($h);
+  $okay = $n < $max;
+  if ($okay) { ftruncate($h, 0); rewind($h); fwrite($h, (string)($n + 1)); fflush($h); }
+  flock($h, LOCK_UN); fclose($h);
+  return $okay;
+}
 function rateLimit(string $bucket, int $perHour, string $window = 'Y-m-d-H'): bool {
-  $key = hash('sha256', $bucket . ($_SERVER['REMOTE_ADDR'] ?? '') . date($window));
+  $key = hash('sha256', $bucket . clientKey() . date($window));
   $f = storeDir() . '/rl-' . substr($key, 0, 24);
-  $n = (int)@file_get_contents($f);
-  if ($n >= $perHour) return false;
-  @file_put_contents($f, (string)($n + 1));
+  if (!bump($f, $perHour)) return false;
   if (mt_rand(1, 20) === 1) foreach (glob(storeDir() . '/rl-*') ?: [] as $x) if (filemtime($x) < time() - 26 * 3600) @unlink($x);
   return true;
 }
 function globalLimit(string $bucket, int $max, string $window = 'Y-m-d-H'): bool {
   $f = storeDir() . '/gl-' . substr(hash('sha256', $bucket . date($window)), 0, 24);
-  $n = (int)@file_get_contents($f);
-  if ($n >= $max) return false;
-  @file_put_contents($f, (string)($n + 1), LOCK_EX);
+  if (!bump($f, $max)) return false;
   if (mt_rand(1, 20) === 1) foreach (glob(storeDir() . '/gl-*') ?: [] as $x) if (filemtime($x) < time() - 26 * 3600) @unlink($x);
   return true;
 }

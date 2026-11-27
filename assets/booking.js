@@ -47,7 +47,7 @@ function renderDays(){
   dy.innerHTML=days.map(d=>{
     const ds=iso(d),ci=info[ds],open=!!C.hours[d.getDay()]&&!closed.has(ds),n=open?freeCount(ds,need):0;
     const full=open&&n===0,few=open&&n!=null&&n>0&&n<=2;
-    const stt=!C.hours[d.getDay()]?'':ci?short(ci):full?'belegt':few?'wenig frei':n?'frei':'';
+    const stt=ci?short(ci):!C.hours[d.getDay()]?'':full?'belegt':few?'wenig frei':n?'frei':'';
     const cls=ci?(ci.kind==='urlaub'?' vac':' shut'):full?' full':few?' few':n?' free':'';
     const lbl=d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})+(ci?', '+ci.label:!open?', geschlossen':full?', ausgebucht':few?', nur noch wenige Zeiten frei':n?', freie Zeiten':'');
     return `<button type="button" class="day${cls}" data-d="${ds}" aria-pressed="${st.day===ds}" ${open&&!full?'':'disabled'} aria-label="${esc(lbl)}" title="${esc(ci?ci.label:'')}"><span>${d.toLocaleDateString('de-DE',{weekday:'short'})}</span><b>${d.getDate()}</b><span>${d.toLocaleDateString('de-DE',{month:'short'})}</span><i class="st">${esc(stt)}</i></button>`}).join('');

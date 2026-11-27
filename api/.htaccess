@@ -1,0 +1,8 @@
+# Interner Datenordner (Datenbank, Schlüssel, Zähler) ist von außen nie erreichbar.
+# Doppelt abgesichert: zusätzlich legt der Server in api/.store/ eine eigene .htaccess an.
+<IfModule mod_alias.c>
+  RedirectMatch 404 "/\.store(/|$)"
+</IfModule>
+<FilesMatch "\.(sqlite|sqlite-wal|sqlite-shm|key|log)$">
+  Require all denied
+</FilesMatch>
